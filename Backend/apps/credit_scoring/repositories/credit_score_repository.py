@@ -1,4 +1,3 @@
-from datetime import timedelta
 from decimal import Decimal
 
 from django.db.models import Count, Sum
@@ -7,7 +6,8 @@ from django.utils import timezone
 from apps.contributions.models import Contribution, ContributionCycle
 from apps.loans.constants import DISBURSED, REPAID
 from apps.loans.models import LoanApplication, LoanRepayment
-from apps.memberships.models import Membership
+from apps.governance.constants import ATTENDANCE_SCORE_WEIGHTS, COMPLETED
+from apps.governance.models import Attendance, Meeting
 
 
 class CreditScoreRepository:
@@ -55,11 +55,36 @@ class CreditScoreRepository:
 
     @staticmethod
     def get_attendance_score(member, chama):
-        # Meetings module not yet implemented; neutral baseline until attendance data exists.
-        return Decimal("50")
+        completed_meetings = Meeting.objects.filter(
+            chama=chama, status=COMPLETED, attendance_finalized=True
+        )
+        total = completed_meetings.count()
+        if total == 0:
+            return Decimal("50")
+
+        records = Attendance.objects.filter(
+            member=member,
+            meeting__chama=chama,
+            meeting__status=COMPLETED,
+            meeting__attendance_finalized=True,
+        ).select_related("meeting")
+
+        if not records.exists():
+            return Decimal("0")
+
+        weighted_total = Decimal("0")
+        for record in records:
+            weight = Decimal(str(ATTENDANCE_SCORE_WEIGHTS.get(record.status, 0)))
+            weighted_total += weight
+
+        return (weighted_total / Decimal(total) * Decimal("100")).quantize(
+            Decimal("0.01")
+        )
 
     @staticmethod
     def get_membership_duration_score(member, chama):
+        from apps.memberships.models import Membership
+
         membership = Membership.objects.filter(
             user=member,
             chama=chama,

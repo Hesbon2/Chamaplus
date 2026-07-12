@@ -150,6 +150,42 @@ def committee_client(committee_user, chama, roles):
 
 
 @pytest.fixture
+def secretary_user(db, roles):
+    return User.objects.create_user(
+        phone_number="+254733333333",
+        password="SecurePass123",
+        email="secretary@example.com",
+        first_name="Sarah",
+        last_name="Secretary",
+    )
+
+
+@pytest.fixture
+def secretary_client(secretary_user, chama, roles):
+    from apps.chamas.models import Chama
+    from apps.memberships.constants import ACTIVE
+    from apps.memberships.models import Membership
+    from apps.roles.constants import SECRETARY
+
+    chama_obj = Chama.objects.get(pk=chama["id"])
+    secretary_role = Role.objects.get(slug=SECRETARY)
+    Membership.objects.get_or_create(
+        user=secretary_user,
+        chama=chama_obj,
+        defaults={"role": secretary_role, "status": ACTIVE},
+    )
+
+    client = APIClient()
+    response = client.post(
+        LOGIN_URL,
+        {"phone_number": "0733333333", "password": "SecurePass123"},
+        format="json",
+    )
+    client.credentials(HTTP_AUTHORIZATION=f"Bearer {response.data['data']['access']}")
+    return client
+
+
+@pytest.fixture
 def chama(auth_client, roles):
     response = auth_client.post(
         CHAMAS_URL,

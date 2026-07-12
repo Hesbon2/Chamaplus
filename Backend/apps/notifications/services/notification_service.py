@@ -1,6 +1,7 @@
 from django.utils import timezone
 
 from apps.core.integration.events import (
+    EVENT_ATTENDANCE_FINALIZED,
     EVENT_COMMITTEE_VOTE_COMPLETED,
     EVENT_CONTRIBUTION_RECORDED,
     EVENT_LOAN_APPLIED,
@@ -12,6 +13,7 @@ from apps.memberships.constants import ACTIVE
 from apps.memberships.models import Membership
 from apps.notifications.channels.delivery import EmailChannel, InAppChannel, SMSChannel
 from apps.notifications.constants import (
+    NOTIFICATION_ATTENDANCE_FINALIZED,
     NOTIFICATION_COMMITTEE_VOTE_COMPLETED,
     NOTIFICATION_CONTRIBUTION_RECORDED,
     NOTIFICATION_LOAN_APPLIED,
@@ -104,6 +106,16 @@ class NotificationService:
                 title="Loan decision finalized",
                 message="Committee voting on your loan application is complete.",
                 notification_type=NOTIFICATION_COMMITTEE_VOTE_COMPLETED,
+                metadata=metadata,
+            )
+
+        elif event_type == EVENT_ATTENDANCE_FINALIZED and member:
+            meeting_title = metadata.get("meeting_title", "the meeting")
+            NotificationService.create(
+                user=member,
+                title="Attendance finalized",
+                message=f"Your attendance for {meeting_title} has been finalized.",
+                notification_type=NOTIFICATION_ATTENDANCE_FINALIZED,
                 metadata=metadata,
             )
 

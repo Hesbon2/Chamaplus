@@ -1,6 +1,6 @@
 # ChamaPlus — Project Status & Architecture Inventory
 
-**Version:** 1.3  
+**Version:** 1.4  
 **Last updated:** July 12, 2026  
 **Scope:** Backend (`Backend/`)  
 **Aligned with:** `Docs/MASTER_PROJECT_SPEC.md`
@@ -9,15 +9,15 @@
 
 ## Executive summary
 
-ChamaPlus backend is a **Django 5.0 + DRF** REST API backed by **MySQL (XAMPP)**. Foundation, authentication, roles, Chama/membership management, contribution management, **financial core** (loan products, applications, committee voting, repayments), and **decision support** (credit scoring, reports, notifications, audit, dashboard) are **implemented and tested**. Meetings and attendance remain **not started** (attendance uses a neutral baseline in credit scoring until governance is built).
+ChamaPlus backend is a **Django 5.0 + DRF** REST API backed by **MySQL (XAMPP)**. Foundation, authentication, roles, Chama/membership management, contribution management, **financial core**, **decision support**, and **governance** (meetings, attendance, minutes) are **implemented and tested**.
 
 | Metric | Count |
 |--------|------:|
 | Django apps registered | 12 |
-| Django apps with domain models | 9 |
-| Database tables (domain) | 13 |
-| API endpoints (business) | 63 |
-| Unit/integration tests | 102 |
+| Django apps with domain models | 10 |
+| Database tables (domain) | 16 |
+| API endpoints (business) | 76 |
+| Unit/integration tests | 115 |
 | Management commands | 1 |
 
 ---
@@ -140,7 +140,23 @@ Chamaplus/
 │       │   ├── admin.py
 │       │   ├── migrations/
 │       │   └── tests/
-│       ├── governance/               # ⬜ Placeholder app (meetings/attendance future)
+│       ├── governance/               # ✅ Implemented
+│       │   ├── models/
+│       │   │   ├── meeting.py
+│       │   │   ├── attendance.py
+│       │   │   └── meeting_minute.py
+│       │   ├── services/
+│       │   │   ├── meeting_service.py
+│       │   │   ├── attendance_service.py
+│       │   │   └── meeting_minute_service.py
+│       │   ├── constants.py
+│       │   ├── serializers.py
+│       │   ├── views.py
+│       │   ├── urls.py
+│       │   ├── permissions.py
+│       │   ├── admin.py
+│       │   ├── migrations/
+│       │   └── tests/
 │       ├── credit_scoring/           # ✅ Implemented
 │       │   ├── models/credit_score.py
 │       │   ├── repositories/credit_score_repository.py
@@ -231,7 +247,7 @@ Chamaplus/
 | `apps.memberships` | `memberships` | **Complete** | `Membership` |
 | `apps.contributions` | `contributions` | **Complete** | `ContributionCycle`, `Contribution` |
 | `apps.loans` | `loans` | **Complete** | `LoanProduct`, `LoanApplication`, `CommitteeVote`, `LoanRepayment` |
-| `apps.governance` | `governance` | Registered, empty | — |
+| `apps.governance` | `governance` | **Complete** | `Meeting`, `Attendance`, `MeetingMinute` |
 | `apps.credit_scoring` | `credit_scoring` | **Complete** | `CreditScore` |
 | `apps.reports` | `reports` | **Complete** | — (aggregation only) |
 | `apps.notifications` | `notifications` | **Complete** | `Notification` |
@@ -241,7 +257,7 @@ Chamaplus/
 
 ## 3. Database models implemented
 
-### 3.1 Domain tables (13 of 16 spec tables)
+### 3.1 Domain tables (16 of 16 spec tables)
 
 | Table | Model | App | PK | Key fields |
 |-------|-------|-----|----|------------|
@@ -258,6 +274,9 @@ Chamaplus/
 | `credit_scores` | `CreditScore` | credit_scoring | UUID | `member`, `chama`, `score`, `risk_level`, `breakdown`, `weights` |
 | `notifications` | `Notification` | notifications | UUID | `user`, `title`, `type`, `is_read`, `metadata` |
 | `audit_logs` | `AuditLog` | audit | UUID | `actor`, `chama`, `action`, `entity_type`, `entity_id` |
+| `meetings` | `Meeting` | governance | UUID | `chama`, `title`, `meeting_type`, `venue`, `status` |
+| `attendance` | `Attendance` | governance | UUID | `meeting`, `member`, `status`, `arrival_time` |
+| `meeting_minutes` | `MeetingMinute` | governance | UUID | `meeting`, `minutes`, `resolutions`, `approved` |
 
 ### 3.2 Abstract base models (`apps.core`)
 
@@ -282,10 +301,11 @@ Chamaplus/
 | credit_scoring | `0001_initial` | Create `CreditScore` |
 | notifications | `0001_initial` | Create `Notification` |
 | audit | `0001_initial` | Create `AuditLog` |
+| governance | `0001_initial` | Meetings, attendance, meeting minutes |
 
-### 3.4 Spec tables not yet implemented (3)
+### 3.4 Spec tables not yet implemented (1)
 
-`user_roles`, `meetings`, `attendance`
+`user_roles` (role assignment handled via `memberships.role` FK)
 
 **Note:** Role assignment is currently handled via `memberships.role` FK rather than a separate `user_roles` table.
 
@@ -595,11 +615,40 @@ All views use class-based API views with `@extend_schema` OpenAPI annotations.
 | GET | `/api/v1/audit-logs/` | JWT + Platform Admin | `PlatformAuditLogListView` |
 | GET | `/api/v1/chamas/{chama_id}/audit-logs/` | JWT + Chairperson | `ChamaAuditLogListView` |
 
-**Total business endpoints:** 63
+**Total business endpoints:** 76
 
-> **Note:** Report export uses query param `export_format` (`csv` or `pdf`), not `format`, to avoid conflict with DRF content negotiation.
+### 7.18 API v1 — Meetings (`/api/v1/chamas/{chama_id}/meetings/`)
+
+| Method | Path | Auth | View |
+|--------|------|------|------|
+| GET | `.../meetings/` | JWT + Member | `MeetingListCreateView` |
+| POST | `.../meetings/` | JWT + Secretary/Chairperson | `MeetingListCreateView` |
+| GET | `.../meetings/{id}/` | JWT + Member | `MeetingDetailView` |
+| PATCH | `.../meetings/{id}/` | JWT + Secretary/Chairperson | `MeetingDetailView` |
+| DELETE | `.../meetings/{id}/` | JWT + Secretary/Chairperson | `MeetingDetailView` (cancel) |
+| POST | `.../meetings/{id}/start/` | JWT + Secretary/Chairperson | `MeetingStartView` |
+| POST | `.../meetings/{id}/close/` | JWT + Secretary/Chairperson | `MeetingCloseView` |
+
+### 7.19 API v1 — Attendance (`/api/v1/chamas/{chama_id}/meetings/{id}/attendance/`)
+
+| Method | Path | Auth | View |
+|--------|------|------|------|
+| GET | `.../attendance/` | JWT + Member | `AttendanceListCreateView` |
+| POST | `.../attendance/` | JWT + Secretary/Chairperson | `AttendanceListCreateView` |
+| PATCH | `.../attendance/{attendance_id}/` | JWT + Secretary/Chairperson | `AttendanceDetailView` |
+
+### 7.20 API v1 — Meeting Minutes (`/api/v1/chamas/{chama_id}/meetings/{id}/minutes/`)
+
+| Method | Path | Auth | View |
+|--------|------|------|------|
+| GET | `.../minutes/` | JWT + Member | `MeetingMinuteView` |
+| POST | `.../minutes/` | JWT + Secretary/Chairperson | `MeetingMinuteView` |
+| PATCH | `.../minutes/` | JWT + Secretary/Chairperson | `MeetingMinuteView` |
+| POST | `.../minutes/approve/` | JWT + Chairperson | `MeetingMinuteApproveView` |
 
 ---
+
+> **Note:** Report export uses query param `export_format` (`csv` or `pdf`), not `format`, to avoid conflict with DRF content negotiation.
 
 ## 7A. Decision Support architecture
 
@@ -621,6 +670,7 @@ Integration hooks (minimal changes to Financial Core):
 | `loan_rejected` | `LoanApplicationService.reject` |
 | `repayment_recorded` | `LoanRepaymentService.record_repayment` |
 | `committee_vote_completed` | `CommitteeVoteService.cast_vote` (when status changes) |
+| `attendance_finalized` | `MeetingService.close_meeting` (per member + meeting audit) |
 
 Failures in decision support are logged and do not roll back the financial transaction.
 
@@ -632,7 +682,7 @@ Configurable weights via `CREDIT_SCORE_WEIGHTS` in settings (defaults per ADR 00
 |-----------|---------------:|
 | Contribution consistency | 35% |
 | Repayment history | 35% |
-| Attendance | 15% (neutral 50 until meetings module) |
+| Attendance | 15% (weighted: present 100%, late 75%, excused 50%, absent 0%) |
 | Membership duration | 15% |
 
 Risk levels: Excellent (80–100), Good (60–79), Fair (40–59), High Risk (0–39). Historical snapshots stored in `credit_scores` table.
@@ -644,6 +694,27 @@ Service-layer aggregation (no dedicated DB tables). Supports JSON summaries, das
 ### Notifications module
 
 `InAppChannel` persists notifications; `SMSChannel` and `EmailChannel` are future-ready stubs.
+
+## 7B. Governance architecture
+
+### Meeting lifecycle
+
+Statuses: `scheduled` → `ongoing` → `completed` (or `cancelled`). Meeting types: ordinary, AGM, emergency, committee.
+
+### Attendance rules
+
+- One record per member per meeting (DB unique constraint).
+- Attendance list shows all **active** members.
+- Secretary or Chairperson records/updates attendance.
+- Meeting close requires attendance for **all** active members, then finalizes attendance.
+
+### Integration on close
+
+`MeetingService.close_meeting()` dispatches `EVENT_ATTENDANCE_FINALIZED` which triggers audit log, in-app notification, and credit score recalculation per member.
+
+### Meeting minutes
+
+One-to-one with completed meetings. Secretary/Chairperson prepares; Chairperson approves.
 
 ---
 
@@ -694,7 +765,7 @@ Full matrix documented in `Docs/PERMISSIONS.md`.
 
 ## 10. Tests available
 
-**Total: 102 tests** (all passing as of last run)
+**Total: 115 tests** (all passing as of last run)
 
 ### 10.1 `apps/accounts/tests/test_auth.py` — 16 tests
 
@@ -747,11 +818,17 @@ Full matrix documented in `Docs/PERMISSIONS.md`.
 | `notifications/tests/test_notifications.py` | 8 |
 | `reports/tests/test_reports.py` | 11 |
 
-### 10.7 Shared fixtures (`apps/conftest.py`)
+### 10.7 Governance tests — 13 tests
 
-`roles`, `chairperson_user`, `member_user`, `treasurer_user`, `committee_user`, `auth_client`, `member_client`, `treasurer_client`, `committee_client`, `chama`
+| File | Tests |
+|------|------:|
+| `governance/tests/test_governance.py` | 13 |
 
-### 10.8 Test gaps
+### 10.8 Shared fixtures (`apps/conftest.py`)
+
+`roles`, `chairperson_user`, `member_user`, `treasurer_user`, `committee_user`, `secretary_user`, `auth_client`, `member_client`, `treasurer_client`, `committee_client`, `secretary_client`, `chama`
+
+### 10.9 Test gaps
 
 | Area | Gap |
 |------|-----|
@@ -779,17 +856,16 @@ Full matrix documented in `Docs/PERMISSIONS.md`.
 
 ### 12.1 Spec modules not started
 
-| Priority | Module | Spec tables |
-|----------|--------|-------------|
-| P1 | Meetings, attendance | `meetings`, `attendance` |
+| Priority | Module | Notes |
+|----------|--------|-------|
+| — | All core spec modules | Implemented |
 
 ### 12.2 Cross-cutting TODOs
 
 | Item | Description |
 |------|-------------|
-| `user_roles` table | Spec lists separate table; currently merged into `memberships.role` — document or align |
-| API_SPEC.md status | Update Decision Support sections from "Planned" to "Implemented" |
-| Attendance scoring | Replace neutral 50 baseline when governance module ships |
+| `user_roles` table | Spec lists separate table; currently merged into `memberships.role` |
+| API_SPEC.md status | Update Governance sections from "Planned" to "Implemented" |
 | Roles tests | Add tests for `GET /api/v1/roles/` and `seed_roles` |
 | CI pipeline | No GitHub Actions / automated test runner configured |
 | Production deployment | No Docker, Gunicorn, or hosting config |
@@ -826,7 +902,11 @@ Full matrix documented in `Docs/PERMISSIONS.md`.
 | Loan applications (apply, approve, reject, cancel, disburse) | 4 |
 | Committee voting with auto status update | 4 |
 | Loan repayments (immutable, balance tracking) | 4 |
-| Unit tests (76) | 1b–5 |
+| Credit scoring (configurable weights, history, recalc) | 6 |
+| Reports, dashboard, notifications, audit logs | 6 |
+| Governance (meetings, attendance, minutes) | 7 |
+| Attendance-driven credit scoring | 7 |
+| Unit tests (115) | 1b–7 |
 | Project documentation (spec, API, standards, ADRs, permissions) | — |
 
 ### 🔄 In Progress
@@ -839,16 +919,9 @@ Full matrix documented in `Docs/PERMISSIONS.md`.
 
 | Feature | Spec reference |
 |---------|----------------|
-| Meetings | Modules list (before credit scoring) |
-| Attendance | Modules list (before credit scoring) |
-| Credit scoring | Dev order #8 |
-| Financial reports (PDF) | Dev order #9 |
-| Notifications | Dev order #10 |
-| Dashboard | Dev order #11 |
-| Audit logs | Modules list (cross-cutting) |
 | Flutter mobile app | Technology stack |
 | M-Pesa integration | Future scope |
-| SMS notifications | Future scope |
+| SMS notifications (live delivery) | Future scope |
 | Biometric login | Future scope |
 | Offline sync | Future scope |
 | Multi-Chama membership UI | Future scope |

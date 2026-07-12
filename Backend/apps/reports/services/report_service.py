@@ -59,11 +59,14 @@ class ReportService:
         from apps.loans.models import LoanApplication
         from apps.memberships.models import Membership
 
+        from apps.governance.services.meeting_service import MeetingService
+
         active_cycle = (
             ContributionCycle.objects.filter(chama=chama, status="open")
             .order_by("-start_date")
             .first()
         )
+        next_meeting = MeetingService.get_next_meeting(chama)
         contributions_cycle = ReportRepository.contribution_summary(chama)
         user_summary = ReportRepository.member_financial_summary(chama, user)
         current_score = CreditScoringService.get_current_score(user, chama)
@@ -78,6 +81,19 @@ class ReportService:
             "pending_loan_applications": LoanApplication.objects.filter(
                 chama=chama, status=PENDING
             ).count(),
+            "completed_meetings": MeetingService.list_meetings(
+                chama, status="completed"
+            ).count(),
+            "next_meeting": (
+                {
+                    "id": str(next_meeting.id),
+                    "title": next_meeting.title,
+                    "meeting_date": str(next_meeting.meeting_date),
+                    "start_time": str(next_meeting.start_time),
+                }
+                if next_meeting
+                else None
+            ),
             "user_summary": {
                 "contributions_paid": user_summary["contributions_total"],
                 "active_loans": user_summary["active_loans"],

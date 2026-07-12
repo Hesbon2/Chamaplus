@@ -1,6 +1,7 @@
 import logging
 
 from apps.core.integration.events import (
+    EVENT_ATTENDANCE_FINALIZED,
     EVENT_COMMITTEE_VOTE_COMPLETED,
     EVENT_CONTRIBUTION_RECORDED,
     EVENT_LOAN_APPLIED,
@@ -18,6 +19,7 @@ EVENT_AUDIT_MAP = {
     EVENT_LOAN_REJECTED: ("loan_application.rejected", "loan_application"),
     EVENT_REPAYMENT_RECORDED: ("repayment.created", "repayment"),
     EVENT_COMMITTEE_VOTE_COMPLETED: ("committee_vote.completed", "committee_vote"),
+    EVENT_ATTENDANCE_FINALIZED: ("attendance.finalized", "attendance"),
 }
 
 
