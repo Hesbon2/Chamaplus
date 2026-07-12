@@ -1,7 +1,7 @@
 from django.db import transaction
 
 from apps.core.exceptions import DomainError
-from apps.loans.constants import VOTABLE_STATUSES
+from apps.loans.constants import APPROVED, REJECTED, VOTABLE_STATUSES
 from apps.loans.models import CommitteeVote
 from apps.loans.services.loan_application_service import LoanApplicationService
 from apps.memberships.services.membership_service import MembershipService
@@ -35,7 +35,25 @@ class CommitteeVoteService:
                 decision=validated_data["decision"],
                 comment=validated_data.get("comment", ""),
             )
+            old_status = application.status
             LoanApplicationService.evaluate_voting(application)
+
+        application.refresh_from_db()
+        if application.status != old_status and application.status in (APPROVED, REJECTED):
+            from apps.core.integration.decision_support import (
+                dispatch_decision_support_event,
+            )
+            from apps.core.integration.events import EVENT_COMMITTEE_VOTE_COMPLETED
+
+            dispatch_decision_support_event(
+                EVENT_COMMITTEE_VOTE_COMPLETED,
+                actor=voter,
+                chama=application.chama,
+                member=application.applicant,
+                entity_type="loan_application",
+                entity_id=application.id,
+                changes={"status": application.status},
+            )
 
         return vote
 

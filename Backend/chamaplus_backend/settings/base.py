@@ -197,6 +197,20 @@ MIN_CONTRIBUTIONS_FOR_LOAN_ELIGIBILITY = env.int(
 )
 LOAN_VOTE_APPROVAL_THRESHOLD = env.float("LOAN_VOTE_APPROVAL_THRESHOLD", default=0.51)
 
+# Credit scoring weights (must sum to 1.0)
+CREDIT_SCORE_WEIGHTS = {
+    "contribution_consistency": env.float("CS_WEIGHT_CONSISTENCY", default=0.35),
+    "repayment_history": env.float("CS_WEIGHT_REPAYMENT", default=0.35),
+    "attendance": env.float("CS_WEIGHT_ATTENDANCE", default=0.15),
+    "membership_duration": env.float("CS_WEIGHT_DURATION", default=0.15),
+}
+
+CREDIT_SCORE_RISK_THRESHOLDS = {
+    "excellent": env.int("CS_RISK_EXCELLENT", default=80),
+    "good": env.int("CS_RISK_GOOD", default=60),
+    "fair": env.int("CS_RISK_FAIR", default=40),
+}
+
 # Logging
 LOGGING = {
     "version": 1,

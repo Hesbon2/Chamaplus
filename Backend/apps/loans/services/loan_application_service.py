@@ -57,7 +57,7 @@ class LoanApplicationService:
         status = PENDING if submit else DRAFT
         applied_at = timezone.now() if submit else None
 
-        return LoanApplication.objects.create(
+        application = LoanApplication.objects.create(
             applicant=applicant,
             chama=chama,
             loan_product=loan_product,
@@ -68,6 +68,22 @@ class LoanApplicationService:
             status=status,
             applied_at=applied_at,
         )
+
+        if submit:
+            from apps.core.integration.decision_support import (
+                dispatch_decision_support_event,
+            )
+            from apps.core.integration.events import EVENT_LOAN_APPLIED
+
+            dispatch_decision_support_event(
+                EVENT_LOAN_APPLIED,
+                actor=applicant,
+                chama=chama,
+                member=applicant,
+                entity_type="loan_application",
+                entity_id=application.id,
+            )
+        return application
 
     @staticmethod
     def submit(application, applicant):
@@ -88,6 +104,18 @@ class LoanApplicationService:
         application.status = PENDING
         application.applied_at = timezone.now()
         application.save(update_fields=["status", "applied_at", "updated_at"])
+
+        from apps.core.integration.decision_support import dispatch_decision_support_event
+        from apps.core.integration.events import EVENT_LOAN_APPLIED
+
+        dispatch_decision_support_event(
+            EVENT_LOAN_APPLIED,
+            actor=applicant,
+            chama=application.chama,
+            member=applicant,
+            entity_type="loan_application",
+            entity_id=application.id,
+        )
         return application
 
     @staticmethod
@@ -152,6 +180,19 @@ class LoanApplicationService:
         if remarks:
             application.remarks = remarks
         application.save()
+
+        from apps.core.integration.decision_support import dispatch_decision_support_event
+        from apps.core.integration.events import EVENT_LOAN_APPROVED
+
+        dispatch_decision_support_event(
+            EVENT_LOAN_APPROVED,
+            actor=approver,
+            chama=application.chama,
+            member=application.applicant,
+            entity_type="loan_application",
+            entity_id=application.id,
+            changes={"approved_amount": str(amount)},
+        )
         return application
 
     @staticmethod
@@ -172,6 +213,18 @@ class LoanApplicationService:
         if remarks:
             application.remarks = remarks
         application.save()
+
+        from apps.core.integration.decision_support import dispatch_decision_support_event
+        from apps.core.integration.events import EVENT_LOAN_REJECTED
+
+        dispatch_decision_support_event(
+            EVENT_LOAN_REJECTED,
+            actor=reviewer,
+            chama=application.chama,
+            member=application.applicant,
+            entity_type="loan_application",
+            entity_id=application.id,
+        )
         return application
 
     @staticmethod

@@ -27,4 +27,12 @@ urlpatterns = [
         "<uuid:chama_id>/loan-applications/",
         include("apps.loans.application_urls"),
     ),
+    path(
+        "<uuid:chama_id>/members/<uuid:member_id>/credit-scores/",
+        include("apps.credit_scoring.urls"),
+    ),
+    path(
+        "<uuid:chama_id>/",
+        include("apps.reports.chama_urls"),
+    ),
 ]

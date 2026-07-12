@@ -51,7 +51,7 @@ class ContributionService:
         currency = validated_data.get("currency") or chama.currency
 
         with transaction.atomic():
-            return Contribution.objects.create(
+            contribution = Contribution.objects.create(
                 cycle=cycle,
                 member=member,
                 amount=validated_data["amount"],
@@ -62,6 +62,20 @@ class ContributionService:
                 recorded_at=recorded_at,
                 idempotency_key=idempotency_key,
             )
+
+        from apps.core.integration.decision_support import dispatch_decision_support_event
+        from apps.core.integration.events import EVENT_CONTRIBUTION_RECORDED
+
+        dispatch_decision_support_event(
+            EVENT_CONTRIBUTION_RECORDED,
+            actor=recorded_by,
+            chama=chama,
+            member=member,
+            entity_type="contribution",
+            entity_id=contribution.id,
+            changes={"amount": str(contribution.amount)},
+        )
+        return contribution
 
     @staticmethod
     def list_contributions(

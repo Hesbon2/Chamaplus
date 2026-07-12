@@ -67,6 +67,18 @@ class LoanRepaymentService:
                 application.status = REPAID
             application.save(update_fields=["outstanding_balance", "status", "updated_at"])
 
+        from apps.core.integration.decision_support import dispatch_decision_support_event
+        from apps.core.integration.events import EVENT_REPAYMENT_RECORDED
+
+        dispatch_decision_support_event(
+            EVENT_REPAYMENT_RECORDED,
+            actor=recorded_by,
+            chama=application.chama,
+            member=application.applicant,
+            entity_type="repayment",
+            entity_id=repayment.id,
+            changes={"amount": str(amount)},
+        )
         return repayment
 
     @staticmethod

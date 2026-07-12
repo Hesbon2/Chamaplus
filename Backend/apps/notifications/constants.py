@@ -1,0 +1,25 @@
+NOTIFICATION_LOAN_APPLIED = "loan_applied"
+NOTIFICATION_LOAN_APPROVED = "loan_approved"
+NOTIFICATION_LOAN_REJECTED = "loan_rejected"
+NOTIFICATION_CONTRIBUTION_RECORDED = "contribution_recorded"
+NOTIFICATION_REPAYMENT_RECORDED = "repayment_recorded"
+NOTIFICATION_COMMITTEE_VOTE_COMPLETED = "committee_vote_completed"
+
+NOTIFICATION_TYPE_CHOICES = (
+    (NOTIFICATION_LOAN_APPLIED, "Loan Applied"),
+    (NOTIFICATION_LOAN_APPROVED, "Loan Approved"),
+    (NOTIFICATION_LOAN_REJECTED, "Loan Rejected"),
+    (NOTIFICATION_CONTRIBUTION_RECORDED, "Contribution Recorded"),
+    (NOTIFICATION_REPAYMENT_RECORDED, "Repayment Recorded"),
+    (NOTIFICATION_COMMITTEE_VOTE_COMPLETED, "Committee Vote Completed"),
+)
+
+CHANNEL_IN_APP = "in_app"
+CHANNEL_SMS = "sms"
+CHANNEL_EMAIL = "email"
+
+CHANNEL_CHOICES = (
+    (CHANNEL_IN_APP, "In-App"),
+    (CHANNEL_SMS, "SMS"),
+    (CHANNEL_EMAIL, "Email"),
+)

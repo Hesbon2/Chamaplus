@@ -1,0 +1,7 @@
+EVENT_CONTRIBUTION_RECORDED = "contribution_recorded"
+EVENT_LOAN_APPLIED = "loan_applied"
+EVENT_LOAN_APPROVED = "loan_approved"
+EVENT_LOAN_REJECTED = "loan_rejected"
+EVENT_REPAYMENT_RECORDED = "repayment_recorded"
+EVENT_COMMITTEE_VOTE_COMPLETED = "committee_vote_completed"
+EVENT_CREDIT_SCORE_RECALCULATED = "credit_score_recalculated"

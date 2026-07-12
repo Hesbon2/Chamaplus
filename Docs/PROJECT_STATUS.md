@@ -1,6 +1,6 @@
 # ChamaPlus — Project Status & Architecture Inventory
 
-**Version:** 1.2  
+**Version:** 1.3  
 **Last updated:** July 12, 2026  
 **Scope:** Backend (`Backend/`)  
 **Aligned with:** `Docs/MASTER_PROJECT_SPEC.md`
@@ -9,15 +9,15 @@
 
 ## Executive summary
 
-ChamaPlus backend is a **Django 5.0 + DRF** REST API backed by **MySQL (XAMPP)**. Foundation, authentication, roles, Chama/membership management, contribution management, and **financial core** (loan products, applications, committee voting, repayments) are **implemented and tested**. Credit scoring, reports, notifications, meetings, audit, and dashboard remain **not started**.
+ChamaPlus backend is a **Django 5.0 + DRF** REST API backed by **MySQL (XAMPP)**. Foundation, authentication, roles, Chama/membership management, contribution management, **financial core** (loan products, applications, committee voting, repayments), and **decision support** (credit scoring, reports, notifications, audit, dashboard) are **implemented and tested**. Meetings and attendance remain **not started** (attendance uses a neutral baseline in credit scoring until governance is built).
 
 | Metric | Count |
 |--------|------:|
 | Django apps registered | 12 |
-| Django apps with domain models | 6 |
-| Database tables (domain) | 10 |
-| API endpoints (business) | 46 |
-| Unit/integration tests | 76 |
+| Django apps with domain models | 9 |
+| Database tables (domain) | 13 |
+| API endpoints (business) | 63 |
+| Unit/integration tests | 102 |
 | Management commands | 1 |
 
 ---
@@ -141,10 +141,48 @@ Chamaplus/
 │       │   ├── migrations/
 │       │   └── tests/
 │       ├── governance/               # ⬜ Placeholder app (meetings/attendance future)
-│       ├── credit_scoring/           # ⬜ Placeholder app
-│       ├── reports/                  # ⬜ Placeholder app
-│       ├── notifications/            # ⬜ Placeholder app
-│       └── audit/                    # ⬜ Placeholder app
+│       ├── credit_scoring/           # ✅ Implemented
+│       │   ├── models/credit_score.py
+│       │   ├── repositories/credit_score_repository.py
+│       │   ├── services/credit_scoring_service.py
+│       │   ├── constants.py
+│       │   ├── serializers.py
+│       │   ├── views.py
+│       │   ├── urls.py
+│       │   ├── admin.py
+│       │   ├── migrations/
+│       │   └── tests/
+│       ├── reports/                  # ✅ Implemented (service-layer, no DB tables)
+│       │   ├── repositories/report_repository.py
+│       │   ├── services/report_service.py
+│       │   ├── permissions.py
+│       │   ├── views.py
+│       │   ├── chama_urls.py
+│       │   └── tests/
+│       ├── notifications/            # ✅ Implemented
+│       │   ├── models/notification.py
+│       │   ├── channels/delivery.py  # In-app + SMS/Email stubs
+│       │   ├── services/notification_service.py
+│       │   ├── constants.py
+│       │   ├── serializers.py
+│       │   ├── views.py
+│       │   ├── urls.py
+│       │   ├── admin.py
+│       │   ├── migrations/
+│       │   └── tests/
+│       ├── audit/                    # ✅ Implemented
+│       │   ├── models/audit_log.py
+│       │   ├── services/audit_service.py
+│       │   ├── permissions.py
+│       │   ├── serializers.py
+│       │   ├── views.py
+│       │   ├── urls.py
+│       │   ├── admin.py
+│       │   ├── migrations/
+│       │   └── tests/ (in notifications/tests)
+│       └── core/integration/         # Decision support event dispatcher
+│           ├── events.py
+│           └── decision_support.py
 ├── Docs/                             # Project documentation
 │   ├── MASTER_PROJECT_SPEC.md
 │   ├── API_SPEC.md
@@ -194,16 +232,16 @@ Chamaplus/
 | `apps.contributions` | `contributions` | **Complete** | `ContributionCycle`, `Contribution` |
 | `apps.loans` | `loans` | **Complete** | `LoanProduct`, `LoanApplication`, `CommitteeVote`, `LoanRepayment` |
 | `apps.governance` | `governance` | Registered, empty | — |
-| `apps.credit_scoring` | `credit_scoring` | Registered, empty | — |
-| `apps.reports` | `reports` | Registered, empty | — |
-| `apps.notifications` | `notifications` | Registered, empty | — |
-| `apps.audit` | `audit` | Registered, empty | — |
+| `apps.credit_scoring` | `credit_scoring` | **Complete** | `CreditScore` |
+| `apps.reports` | `reports` | **Complete** | — (aggregation only) |
+| `apps.notifications` | `notifications` | **Complete** | `Notification` |
+| `apps.audit` | `audit` | **Complete** | `AuditLog` |
 
 ---
 
 ## 3. Database models implemented
 
-### 3.1 Domain tables (10 of 16 spec tables)
+### 3.1 Domain tables (13 of 16 spec tables)
 
 | Table | Model | App | PK | Key fields |
 |-------|-------|-----|----|------------|
@@ -217,6 +255,9 @@ Chamaplus/
 | `loan_applications` | `LoanApplication` | loans | UUID | `applicant`, `loan_product`, `status`, `outstanding_balance` |
 | `committee_votes` | `CommitteeVote` | loans | UUID | `loan_application`, `committee_member`, `decision` |
 | `repayments` | `LoanRepayment` | loans | UUID | `loan_application`, `amount`, `payment_method`, `recorded_by` |
+| `credit_scores` | `CreditScore` | credit_scoring | UUID | `member`, `chama`, `score`, `risk_level`, `breakdown`, `weights` |
+| `notifications` | `Notification` | notifications | UUID | `user`, `title`, `type`, `is_read`, `metadata` |
+| `audit_logs` | `AuditLog` | audit | UUID | `actor`, `chama`, `action`, `entity_type`, `entity_id` |
 
 ### 3.2 Abstract base models (`apps.core`)
 
@@ -238,10 +279,13 @@ Chamaplus/
 | contributions | `0002_contribution_and_more` | Create `Contribution` |
 | contributions | `0003_...` | Idempotency key unique field |
 | loans | `0001_initial` | Loan products, applications, votes, repayments |
+| credit_scoring | `0001_initial` | Create `CreditScore` |
+| notifications | `0001_initial` | Create `Notification` |
+| audit | `0001_initial` | Create `AuditLog` |
 
-### 3.4 Spec tables not yet implemented (6)
+### 3.4 Spec tables not yet implemented (3)
 
-`user_roles`, `meetings`, `attendance`, `credit_scores`, `notifications`, `audit_logs`
+`user_roles`, `meetings`, `attendance`
 
 **Note:** Role assignment is currently handled via `memberships.role` FK rather than a separate `user_roles` table.
 
@@ -331,6 +375,10 @@ Chamaplus/
 | `LoanEligibilityService` | loans | `validate_eligibility` |
 | `CommitteeVoteService` | loans | `cast_vote`, `list_votes` |
 | `LoanRepaymentService` | loans | `record_repayment`, `list_repayments`, `get_repayment` |
+| `CreditScoringService` | credit_scoring | `calculate_components`, `recalculate`, `get_current_score`, `list_history`, `can_view_member_score` |
+| `ReportService` | reports | `get_contributions_report`, `get_loans_report`, `get_repayments_report`, `get_financial_report`, `get_member_financial_report`, `get_monthly_report`, `get_dashboard`, `export_report` |
+| `NotificationService` | notifications | `create`, `dispatch_event`, `list_for_user`, `get_notification`, `mark_read`, `mark_all_read` |
+| `AuditService` | audit | `log`, `list_chama_logs`, `list_platform_logs` |
 
 ### Core infrastructure (not services, but shared logic)
 
@@ -341,8 +389,15 @@ Chamaplus/
 | `apps.core.exceptions.base` | `DomainError` |
 | `apps.core.utils.validators` | `normalize_kenyan_phone_number` |
 | `apps.core.pagination` | `StandardPagination` |
+| `apps.core.integration.decision_support` | `dispatch_decision_support_event` — audit, notifications, credit recalc |
+| `apps.core.integration.events` | Financial event constants |
 
-**Repositories:** None implemented yet (planned for credit scoring and reports per ADR 003).
+**Repositories:**
+
+| Repository | App | Purpose |
+|------------|-----|---------|
+| `CreditScoreRepository` | credit_scoring | Cross-table score component aggregations |
+| `ReportRepository` | reports | Contribution, loan, repayment, member/chama summaries |
 
 ---
 
@@ -498,7 +553,97 @@ All views use class-based API views with `@extend_schema` OpenAPI annotations.
 | POST | `.../repayments/` | JWT + Treasurer | `LoanRepaymentListCreateView` |
 | GET | `.../repayments/{id}/` | JWT + Member | `LoanRepaymentDetailView` |
 
-**Total business endpoints:** 46
+### 7.13 API v1 — Credit Scoring (`/api/v1/chamas/{chama_id}/members/{member_id}/credit-scores/`)
+
+| Method | Path | Auth | View |
+|--------|------|------|------|
+| GET | `.../credit-scores/` | JWT + Member | `CreditScoreListView` |
+| GET | `.../credit-scores/current/` | JWT + Member | `CreditScoreCurrentView` |
+| POST | `.../credit-scores/recalculate/` | JWT + Treasurer/Chairperson | `CreditScoreRecalculateView` |
+
+### 7.14 API v1 — Reports (`/api/v1/chamas/{chama_id}/reports/`)
+
+| Method | Path | Auth | View |
+|--------|------|------|------|
+| GET | `.../reports/contributions/` | JWT + Treasurer/Chairperson | `ContributionsReportView` |
+| GET | `.../reports/loans/` | JWT + Treasurer/Chairperson | `LoansReportView` |
+| GET | `.../reports/repayments/` | JWT + Treasurer/Chairperson | `RepaymentsReportView` |
+| GET | `.../reports/financial/` | JWT + Treasurer/Chairperson | `FinancialReportView` |
+| GET | `.../reports/monthly/` | JWT + Treasurer/Chairperson | `MonthlyReportView` |
+| GET | `.../reports/members/{member_id}/financial/` | JWT + Member (own) or Treasurer/Chairperson | `MemberFinancialReportView` |
+| GET | `.../reports/{type}/export/?export_format=csv\|pdf` | JWT + Treasurer/Chairperson | `ReportExportView` |
+
+### 7.15 API v1 — Dashboard (`/api/v1/chamas/{chama_id}/dashboard/`)
+
+| Method | Path | Auth | View |
+|--------|------|------|------|
+| GET | `/api/v1/chamas/{chama_id}/dashboard/` | JWT + Member | `DashboardView` |
+
+### 7.16 API v1 — Notifications (`/api/v1/notifications/`)
+
+| Method | Path | Auth | View |
+|--------|------|------|------|
+| GET | `/api/v1/notifications/` | JWT | `NotificationListView` |
+| GET | `/api/v1/notifications/{id}/` | JWT + Owner | `NotificationDetailView` |
+| PATCH | `/api/v1/notifications/{id}/` | JWT + Owner | `NotificationDetailView` |
+| POST | `/api/v1/notifications/mark-all-read/` | JWT | `NotificationMarkAllReadView` |
+
+### 7.17 API v1 — Audit Logs
+
+| Method | Path | Auth | View |
+|--------|------|------|------|
+| GET | `/api/v1/audit-logs/` | JWT + Platform Admin | `PlatformAuditLogListView` |
+| GET | `/api/v1/chamas/{chama_id}/audit-logs/` | JWT + Chairperson | `ChamaAuditLogListView` |
+
+**Total business endpoints:** 63
+
+> **Note:** Report export uses query param `export_format` (`csv` or `pdf`), not `format`, to avoid conflict with DRF content negotiation.
+
+---
+
+## 7A. Decision Support architecture
+
+### Event-driven integration
+
+Financial write operations dispatch `dispatch_decision_support_event()` from `apps.core.integration.decision_support`, which orchestrates:
+
+1. **Audit log** — immutable `AuditLog` entry
+2. **Notification** — in-app alert via `NotificationService` (SMS/Email channel stubs ready)
+3. **Credit score** — automatic `CreditScoringService.recalculate()` for the affected member
+
+Integration hooks (minimal changes to Financial Core):
+
+| Event | Trigger location |
+|-------|------------------|
+| `contribution_recorded` | `ContributionService.record_contribution` |
+| `loan_applied` | `LoanApplicationService.apply` (submit), `submit` |
+| `loan_approved` | `LoanApplicationService.approve` |
+| `loan_rejected` | `LoanApplicationService.reject` |
+| `repayment_recorded` | `LoanRepaymentService.record_repayment` |
+| `committee_vote_completed` | `CommitteeVoteService.cast_vote` (when status changes) |
+
+Failures in decision support are logged and do not roll back the financial transaction.
+
+### Credit scoring engine
+
+Configurable weights via `CREDIT_SCORE_WEIGHTS` in settings (defaults per ADR 005):
+
+| Component | Default weight |
+|-----------|---------------:|
+| Contribution consistency | 35% |
+| Repayment history | 35% |
+| Attendance | 15% (neutral 50 until meetings module) |
+| Membership duration | 15% |
+
+Risk levels: Excellent (80–100), Good (60–79), Fair (40–59), High Risk (0–39). Historical snapshots stored in `credit_scores` table.
+
+### Reports module
+
+Service-layer aggregation (no dedicated DB tables). Supports JSON summaries, dashboard, and file export (CSV/PDF via `reportlab`).
+
+### Notifications module
+
+`InAppChannel` persists notifications; `SMSChannel` and `EmailChannel` are future-ready stubs.
 
 ---
 
@@ -533,11 +678,13 @@ All views use class-based API views with `@extend_schema` OpenAPI annotations.
 | `IsChamaCommitteeMember` | `loans/permissions.py` | Committee member or Chairperson |
 | `IsChamaTreasurer` | `loans/permissions.py` | Treasurer (disburse, repayments) |
 | `IsChamaChairpersonOrTreasurer` | `loans/permissions.py` | Chairperson or Treasurer (product create) |
+| `IsChamaTreasurerOrChairperson` | `reports/permissions.py` | Treasurer or Chairperson (reports) |
+| `IsChamaChairpersonForAudit` | `reports/permissions.py` | Chairperson (Chama audit logs) |
+| `IsPlatformAdministrator` | `audit/permissions.py` | Superuser or platform Administrator role |
 
 ### Not yet implemented
 
 - `IsChamaSecretary`
-- Platform `Administrator` permission class
 - Object-level DRF permissions (all current checks are request-level)
 - Permission classes for meetings, governance modules
 
@@ -547,7 +694,7 @@ Full matrix documented in `Docs/PERMISSIONS.md`.
 
 ## 10. Tests available
 
-**Total: 76 tests** (all passing as of last run)
+**Total: 102 tests** (all passing as of last run)
 
 ### 10.1 `apps/accounts/tests/test_auth.py` — 16 tests
 
@@ -592,11 +739,19 @@ Full matrix documented in `Docs/PERMISSIONS.md`.
 | `test_loan_products.py` | 5 |
 | `test_loan_applications.py` | 13 |
 
-### 10.6 Shared fixtures (`apps/conftest.py`)
+### 10.6 Decision Support tests — 26 tests
+
+| File | Tests |
+|------|------:|
+| `credit_scoring/tests/test_credit_scoring.py` | 7 |
+| `notifications/tests/test_notifications.py` | 8 |
+| `reports/tests/test_reports.py` | 11 |
+
+### 10.7 Shared fixtures (`apps/conftest.py`)
 
 `roles`, `chairperson_user`, `member_user`, `treasurer_user`, `committee_user`, `auth_client`, `member_client`, `treasurer_client`, `committee_client`, `chama`
 
-### 10.7 Test gaps
+### 10.8 Test gaps
 
 | Area | Gap |
 |------|-----|
@@ -627,32 +782,21 @@ Full matrix documented in `Docs/PERMISSIONS.md`.
 | Priority | Module | Spec tables |
 |----------|--------|-------------|
 | P1 | Meetings, attendance | `meetings`, `attendance` |
-| P2 | Credit scoring | `credit_scores` |
-| P2 | Reports | (aggregation, no new table) |
-| P2 | Notifications | `notifications` |
-| P2 | Dashboard | (aggregation, no new table) |
-| P3 | Audit logs | `audit_logs` |
 
 ### 12.2 Cross-cutting TODOs
 
 | Item | Description |
 |------|-------------|
-| Audit logging | Wire `AuditService` into all write operations |
 | `user_roles` table | Spec lists separate table; currently merged into `memberships.role` — document or align |
-| API_SPEC.md status | Update Chamas/Memberships/Contributions sections from "Planned" to "Implemented" |
+| API_SPEC.md status | Update Decision Support sections from "Planned" to "Implemented" |
+| Attendance scoring | Replace neutral 50 baseline when governance module ships |
 | Roles tests | Add tests for `GET /api/v1/roles/` and `seed_roles` |
 | CI pipeline | No GitHub Actions / automated test runner configured |
 | Production deployment | No Docker, Gunicorn, or hosting config |
 | Flutter client | Not started |
 | `pytest-cov` | Add coverage reporting to requirements |
 | Rate limiting | Not implemented (future) |
-
-### 12.3 Credit scoring prerequisites (before Sprint 7)
-
-- Define sub-formulas for consistency, repayment, attendance, duration
-- Implement meetings + attendance modules first (15% weight)
-- Configurable weights via environment variables
-- `CreditScoreRepository` for cross-table aggregations
+| SMS/Email delivery | Channel interfaces stubbed; providers not wired |
 
 ---
 
