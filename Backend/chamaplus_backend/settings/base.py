@@ -191,6 +191,12 @@ SPECTACULAR_SETTINGS = {
 # CORS — origins loaded from environment; see development/production overrides
 CORS_ALLOWED_ORIGINS = env("CORS_ALLOWED_ORIGINS")
 
+# Loan eligibility and committee voting
+MIN_CONTRIBUTIONS_FOR_LOAN_ELIGIBILITY = env.int(
+    "MIN_CONTRIBUTIONS_FOR_LOAN_ELIGIBILITY", default=1
+)
+LOAN_VOTE_APPROVAL_THRESHOLD = env.float("LOAN_VOTE_APPROVAL_THRESHOLD", default=0.51)
+
 # Logging
 LOGGING = {
     "version": 1,

@@ -6,4 +6,6 @@ urlpatterns = [
     path("auth/", include((auth_urlpatterns, "accounts"), namespace="auth")),
     path("users/", include((user_urlpatterns, "accounts"), namespace="users")),
     path("roles/", include("apps.roles.urls")),
+    path("chamas/", include("apps.chamas.urls")),
+    path("memberships/", include("apps.memberships.urls")),
 ]
