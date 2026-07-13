@@ -4,14 +4,19 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../config/env_config.dart';
 import '../constants/api_constants.dart';
 import '../errors/error_handler.dart';
-import 'api_interceptor.dart';
 import '../storage/secure_storage_service.dart';
+import 'auth_interceptor.dart';
+import 'session_expired_notifier.dart';
+import 'token_refresh_service.dart';
+
+typedef SessionExpiredCallback = void Function();
 
 /// Global Dio HTTP client configured for the ChamaPlus API.
 class ApiClient {
   ApiClient({
     required SecureStorageService secureStorage,
     ErrorHandler? errorHandler,
+    SessionExpiredCallback? onSessionExpired,
   })  : _errorHandler = errorHandler ?? const ErrorHandler(),
         _dio = Dio(
           BaseOptions(
@@ -24,13 +29,27 @@ class ApiClient {
             },
           ),
         ) {
-    _dio.interceptors.add(ApiInterceptor(secureStorage));
+    _tokenRefreshService = TokenRefreshService(
+      dio: _dio,
+      secureStorage: secureStorage,
+    );
+    _dio.interceptors.add(
+      AuthInterceptor(
+        dio: _dio,
+        secureStorage: secureStorage,
+        tokenRefreshService: _tokenRefreshService,
+        onSessionExpired: onSessionExpired,
+      ),
+    );
   }
 
   final Dio _dio;
   final ErrorHandler _errorHandler;
+  late final TokenRefreshService _tokenRefreshService;
 
   Dio get dio => _dio;
+
+  TokenRefreshService get tokenRefreshService => _tokenRefreshService;
 
   Future<Response<T>> get<T>(
     String path, {
@@ -111,7 +130,11 @@ class ApiClient {
 
 final apiClientProvider = Provider<ApiClient>((ref) {
   final secureStorage = ref.watch(secureStorageServiceProvider);
-  return ApiClient(secureStorage: secureStorage);
+  final sessionNotifier = ref.watch(sessionExpiredNotifierProvider);
+  return ApiClient(
+    secureStorage: secureStorage,
+    onSessionExpired: sessionNotifier.notify,
+  );
 });
 
 final errorHandlerProvider = Provider<ErrorHandler>((ref) {
