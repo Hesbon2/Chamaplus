@@ -1,0 +1,29 @@
+name: chamaplus_mobile
+description: ChamaPlus mobile client for Kenyan savings groups (Chamas).
+publish_to: 'none'
+version: 1.0.0+1
+
+environment:
+  sdk: '>=3.3.0 <4.0.0'
+
+dependencies:
+  flutter:
+    sdk: flutter
+  cupertino_icons: ^1.0.6
+  flutter_riverpod: ^2.5.1
+  go_router: ^13.2.0
+  dio: ^5.4.0
+  google_fonts: ^6.1.0
+  flutter_secure_storage: ^9.0.0
+  flutter_dotenv: ^5.1.0
+  connectivity_plus: ^5.0.2
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^3.0.0
+
+flutter:
+  uses-material-design: true
+  assets:
+    - .env
