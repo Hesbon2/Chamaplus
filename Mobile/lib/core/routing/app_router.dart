@@ -7,7 +7,13 @@ import '../../features/auth/presentation/providers/auth_providers.dart';
 import '../../features/auth/presentation/screens/forgot_password_screen.dart';
 import '../../features/auth/presentation/screens/login_screen.dart';
 import '../../features/auth/presentation/screens/splash_screen.dart';
-import '../../features/dashboard/presentation/screens/home_screen.dart';
+import '../../features/chamas/presentation/screens/chama_details_screen.dart';
+import '../../features/chamas/presentation/screens/join_requests_screen.dart';
+import '../../features/chamas/presentation/screens/member_details_screen.dart';
+import '../../features/chamas/presentation/screens/members_screen.dart';
+import '../../features/chamas/presentation/screens/my_chamas_screen.dart';
+import '../../features/dashboard/presentation/screens/dashboard_screen.dart';
+import '../../shared/components/feature_placeholder_screen.dart';
 import 'route_paths.dart';
 
 final _rootNavigatorKey = GlobalKey<NavigatorState>();
@@ -54,6 +60,14 @@ final routerNotifierProvider = Provider<RouterNotifier>((ref) {
   return notifier;
 });
 
+GoRoute _placeholderRoute(String path, String title) {
+  return GoRoute(
+    path: path,
+    name: path.replaceAll('/', ''),
+    builder: (context, state) => FeaturePlaceholderScreen(title: title),
+  );
+}
+
 final appRouterProvider = Provider<GoRouter>((ref) {
   final notifier = ref.watch(routerNotifierProvider);
 
@@ -81,8 +95,53 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: RoutePaths.home,
         name: 'home',
-        builder: (context, state) => const HomeScreen(),
+        builder: (context, state) => const DashboardScreen(),
       ),
+      GoRoute(
+        path: RoutePaths.chamas,
+        name: 'chamas',
+        builder: (context, state) => const MyChamasScreen(),
+        routes: [
+          GoRoute(
+            path: ':chamaId',
+            name: 'chama-details',
+            builder: (context, state) => ChamaDetailsScreen(
+              chamaId: state.pathParameters['chamaId']!,
+            ),
+            routes: [
+              GoRoute(
+                path: 'members',
+                name: 'chama-members',
+                builder: (context, state) => MembersScreen(
+                  chamaId: state.pathParameters['chamaId']!,
+                ),
+                routes: [
+                  GoRoute(
+                    path: ':membershipId',
+                    name: 'member-details',
+                    builder: (context, state) => MemberDetailsScreen(
+                      chamaId: state.pathParameters['chamaId']!,
+                      membershipId: state.pathParameters['membershipId']!,
+                    ),
+                  ),
+                ],
+              ),
+              GoRoute(
+                path: 'join-requests',
+                name: 'chama-join-requests',
+                builder: (context, state) => JoinRequestsScreen(
+                  chamaId: state.pathParameters['chamaId']!,
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+      _placeholderRoute(RoutePaths.contributions, 'Contributions'),
+      _placeholderRoute(RoutePaths.loans, 'Loans'),
+      _placeholderRoute(RoutePaths.meetings, 'Meetings'),
+      _placeholderRoute(RoutePaths.reports, 'Reports'),
+      _placeholderRoute(RoutePaths.profile, 'Profile'),
     ],
   );
 });

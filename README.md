@@ -12,79 +12,70 @@ Digital platform for Kenyan savings groups (Chamas) — contributions, loans, me
 
 ## Mobile app (`mobile/`)
 
-Flutter client for ChamaPlus with a complete **authentication module** and foundation for domain features.
+Flutter client with authentication, dashboard, design system, form framework, and Chama management.
 
 ### Tech stack
 
-- **Flutter** with **Material 3**
-- **Riverpod** — dependency injection and state management
-- **GoRouter** — declarative navigation with route guards
-- **Dio** — HTTP client with JWT refresh interceptor
-- **Google Fonts** — Inter typography
-- **flutter_secure_storage** — secure JWT token persistence
-- **flutter_dotenv** — environment configuration
-- **connectivity_plus** — network status monitoring
+- **Flutter** + **Material 3** + **Riverpod** + **GoRouter** + **Dio**
+- **fl_chart**, **Google Fonts**, **flutter_secure_storage**, **flutter_dotenv**, **connectivity_plus**
 
 ### Architecture
 
-The mobile app follows a **feature-first** layout with a shared **core** layer:
-
 ```
 lib/
-├── main.dart
-├── app.dart
-├── core/                  # Cross-cutting infrastructure
-│   ├── api/               # Dio, auth interceptor, token refresh
-│   ├── config/            # .env loading
-│   ├── routing/           # GoRouter + auth redirects
-│   ├── storage/           # Secure token storage
-│   └── ...
+├── core/                  # API, routing, theme, storage
 ├── shared/
+│   ├── components/        # Design system (AppCard, StatCard, …)
+│   └── forms/             # Form framework (AppForm, fields, validators)
 └── features/
-    └── auth/              # Login, logout, session restore
-        ├── data/          # API client, DTOs, repository impl
-        ├── domain/        # User entity, repository interface
-        └── presentation/  # Screens, controllers, providers
+    ├── auth/
+    ├── dashboard/
+    └── chamas/
 ```
 
-**Auth data flow:**
+### Design system
 
-```
-Screen → Controller (Riverpod) → AuthRepository → AuthApi → Dio → Django API
-                                      ↓
-                            SecureStorageService (tokens only)
+```dart
+import 'package:chamaplus_mobile/shared/components/components.dart';
 ```
 
-### Authentication
+Includes `AppCard`, `StatCard`, `SectionHeader`, `AvatarBadge`, `InfoTile`, `StatusChip`, `EmptyState`, `ShimmerLoader`, `ActionButton`, `ConfirmationDialog`.
 
-| Feature | Implementation |
-|---------|----------------|
-| Login | `POST /auth/login/` → store JWT pair → fetch `/users/me/` |
-| Logout | `POST /auth/logout/` → blacklist refresh token → clear storage |
-| Session restore | Splash reads tokens → validates via `/users/me/` |
-| Token refresh | Dio interceptor on `401` → `POST /auth/refresh/` → retry request |
-| Session expiry | Refresh failure → clear tokens → redirect to login |
-| Route guards | GoRouter redirect based on `AuthController` state |
-| Forgot password | UI only (backend endpoint not yet available) |
+### Form framework
 
-**Security rules:**
+Reusable Material 3 form primitives under `lib/shared/forms/`:
 
-- Access and refresh tokens stored **only** in `flutter_secure_storage`
-- Passwords are **never** persisted
-- Logout always clears local storage, even if the API call fails
+```dart
+import 'package:chamaplus_mobile/shared/forms/forms.dart';
+```
 
-**Auth screens:**
+| Component | Purpose |
+|-----------|---------|
+| `AppForm` / `FormSection` | Form shell + labeled field groups |
+| `AppTextField` | Single-line text |
+| `AppPhoneField` | Kenyan phone + validation |
+| `AppCurrencyField` | Currency code dropdown |
+| `AppAmountField` | Monetary amount |
+| `AppDropdown` | Generic select |
+| `AppSearchField` | Search with clear |
+| `AppDatePicker` / `AppTimePicker` | Material pickers |
+| `AppMultilineField` | Notes / descriptions |
+| `AppSubmitButton` | Validate + submit with loading |
+| `AppValidators` | Shared validators (required, phone, amount, email, compose, …) |
+
+Supported across fields: validation, read-only, disabled, loading (submit), prefix/suffix icons, error text, keyboard types, auto-validation.
+
+### Chama management
 
 | Route | Screen |
 |-------|--------|
-| `/splash` | Session restoration |
-| `/login` | Phone + password sign-in |
-| `/forgot-password` | Placeholder reset UI |
-| `/home` | Authenticated placeholder (requires login) |
+| `/chamas` | My Chamas |
+| `/chamas/:id` | Chama details |
+| `/chamas/:id/members` | Members |
+| `/chamas/:id/members/:membershipId` | Member details |
+| `/chamas/:id/join-requests` | Approve / reject invites |
 
 ### Getting started
-
-**Prerequisites:** Flutter SDK 3.19+, Dart 3.3+, Django backend running
 
 ```bash
 cd mobile
@@ -93,15 +84,11 @@ flutter pub get
 flutter run
 ```
 
-**API base URL** (in `.env`):
-
 | Target | `API_BASE_URL` |
 |--------|----------------|
 | iOS Simulator / desktop | `http://127.0.0.1:8000/api/v1` |
 | Android Emulator | `http://10.0.2.2:8000/api/v1` |
 | Physical device | LAN IP, e.g. `http://192.168.x.x:8000/api/v1` |
-
-**Test login:** Register a user via `POST /api/v1/auth/register/` or Django admin, then sign in with phone number and password on the login screen.
 
 ### Verify build
 
@@ -113,7 +100,7 @@ flutter test
 
 ## Backend
 
-See `Docs/API_SPEC.md` for endpoint documentation and `Docs/PROJECT_STATUS.md` for implementation status.
+See `Docs/API_SPEC.md` and `Docs/PROJECT_STATUS.md`.
 
 ## License
 
