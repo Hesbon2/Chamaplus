@@ -16,6 +16,19 @@ class FakeAuthRepository implements AuthRepository {
   bool logoutCalled;
 
   @override
+  Future<User> register({
+    required String phoneNumber,
+    required String password,
+    required String passwordConfirm,
+    String? firstName,
+    String? lastName,
+    String? email,
+  }) async {
+    if (loginError != null) throw loginError!;
+    return loginResult ?? restoreResult!;
+  }
+
+  @override
   Future<User> getCurrentUser() async {
     if (restoreResult != null) return restoreResult!;
     if (loginResult != null) return loginResult!;
@@ -38,6 +51,25 @@ class FakeAuthRepository implements AuthRepository {
 
   @override
   Future<User?> restoreSession() async => restoreResult;
+
+  @override
+  Future<User> updateProfile({
+    String? firstName,
+    String? lastName,
+    String? email,
+  }) async {
+    final base = loginResult ?? restoreResult ?? testUser();
+    return User(
+      id: base.id,
+      phoneNumber: base.phoneNumber,
+      firstName: firstName ?? base.firstName,
+      lastName: lastName ?? base.lastName,
+      email: email ?? base.email,
+      isStaff: base.isStaff,
+      dateJoined: base.dateJoined,
+      lastLogin: base.lastLogin,
+    );
+  }
 }
 
 /// Sample user for tests.

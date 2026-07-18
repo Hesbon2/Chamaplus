@@ -28,6 +28,24 @@ class FakeChamaApi implements ChamaRemoteDataSource {
   }
 
   @override
+  Future<ChamaDto> createChama(Map<String, dynamic> body) async {
+    return chama!;
+  }
+
+  @override
+  Future<MembershipDto> joinChama({required String inviteCode}) async {
+    return updatedMembership!;
+  }
+
+  @override
+  Future<MembershipDto> inviteMember({
+    required String chamaId,
+    required Map<String, dynamic> body,
+  }) async {
+    return updatedMembership!;
+  }
+
+  @override
   Future<Map<String, dynamic>> getDashboard(String chamaId) async {
     return dashboard;
   }

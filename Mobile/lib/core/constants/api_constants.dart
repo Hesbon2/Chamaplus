@@ -9,13 +9,16 @@ class ApiConstants {
 
   // Auth endpoints (relative to API base URL)
   static const String authLogin = '/auth/login/';
+  static const String authRegister = '/auth/register/';
   static const String authRefresh = '/auth/refresh/';
   static const String authLogout = '/auth/logout/';
   static const String usersMe = '/users/me/';
 
   // Chama & dashboard
   static const String chamas = '/chamas/';
+  static const String chamaJoin = '/chamas/join/';
   static String chamaDetail(String chamaId) => '/chamas/$chamaId/';
+  static String chamaInvite(String chamaId) => '/chamas/$chamaId/invite/';
   static String chamaDashboard(String chamaId) => '/chamas/$chamaId/dashboard/';
   static String chamaMembers(String chamaId) => '/chamas/$chamaId/members/';
   static String chamaMeetings(String chamaId) => '/chamas/$chamaId/meetings/';

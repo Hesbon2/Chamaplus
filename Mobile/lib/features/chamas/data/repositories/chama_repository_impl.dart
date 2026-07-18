@@ -29,6 +29,40 @@ class ChamaRepositoryImpl implements ChamaRepository {
   }
 
   @override
+  Future<Chama> createChama(CreateChamaInput input) async {
+    final dto = await _api.createChama({
+      'name': input.name,
+      if (input.description != null && input.description!.trim().isNotEmpty)
+        'description': input.description!.trim(),
+      if (input.location != null && input.location!.trim().isNotEmpty)
+        'location': input.location!.trim(),
+      'currency': input.currency,
+    });
+    return dto.toEntity();
+  }
+
+  @override
+  Future<Membership> joinChama({required String inviteCode}) async {
+    final dto = await _api.joinChama(inviteCode: inviteCode.trim().toUpperCase());
+    return dto.toEntity();
+  }
+
+  @override
+  Future<Membership> inviteMember({
+    required String chamaId,
+    required InviteMemberInput input,
+  }) async {
+    final dto = await _api.inviteMember(
+      chamaId: chamaId,
+      body: {
+        'phone_number': input.phoneNumber,
+        'role': input.role,
+      },
+    );
+    return dto.toEntity();
+  }
+
+  @override
   Future<ChamaDetails> getChamaDetails(String chamaId) async {
     final chama = await getChama(chamaId);
     final dashboard = await _api.getDashboard(chamaId);

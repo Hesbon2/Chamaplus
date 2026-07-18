@@ -9,6 +9,15 @@ abstract class ChamaRepository {
 
   Future<Chama> getChama(String chamaId);
 
+  Future<Chama> createChama(CreateChamaInput input);
+
+  Future<Membership> joinChama({required String inviteCode});
+
+  Future<Membership> inviteMember({
+    required String chamaId,
+    required InviteMemberInput input,
+  });
+
   Future<ChamaDetails> getChamaDetails(String chamaId);
 
   Future<PagedResult<Membership>> listMembers({

@@ -1,10 +1,13 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
+import 'package:share_plus/share_plus.dart';
 
 import '../../../../core/routing/route_paths.dart';
 import '../../../../core/theme/app_spacing.dart';
+import '../../../../core/widgets/app_snackbar.dart';
 import '../../../../shared/api_state.dart';
 import '../../../../shared/components/components.dart';
 import '../../domain/entities/chama.dart';
@@ -98,6 +101,33 @@ class _DetailsBody extends StatelessWidget {
                   subtitle: chama.inviteCode,
                   leading: const Icon(Icons.qr_code),
                   contentPadding: EdgeInsets.zero,
+                  trailing: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      IconButton(
+                        tooltip: 'Copy code',
+                        onPressed: () async {
+                          await Clipboard.setData(
+                            ClipboardData(text: chama.inviteCode!),
+                          );
+                          if (context.mounted) {
+                            AppSnackbar.success(context, 'Invite code copied');
+                          }
+                        },
+                        icon: const Icon(Icons.copy_outlined),
+                      ),
+                      IconButton(
+                        tooltip: 'Share code',
+                        onPressed: () {
+                          Share.share(
+                            'Join my ChamaPlus group "${chama.name}" with invite code: ${chama.inviteCode}',
+                            subject: 'ChamaPlus invite',
+                          );
+                        },
+                        icon: const Icon(Icons.share_outlined),
+                      ),
+                    ],
+                  ),
                 ),
               ],
             ],
@@ -221,8 +251,16 @@ class _DetailsBody extends StatelessWidget {
           ),
         const SizedBox(height: AppSpacing.md),
         ActionButton(
+          label: 'Invite members',
+          icon: Icons.person_add_alt_1_outlined,
+          onPressed: () =>
+              context.push(RoutePaths.chamaInviteMembers(chama.id)),
+        ),
+        const SizedBox(height: AppSpacing.sm),
+        ActionButton(
           label: 'View members',
           icon: Icons.people_outline,
+          variant: ActionButtonVariant.secondary,
           onPressed: () => context.push(RoutePaths.chamaMembers(chama.id)),
         ),
         const SizedBox(height: AppSpacing.sm),

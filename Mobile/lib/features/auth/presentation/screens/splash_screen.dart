@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/constants/app_constants.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_spacing.dart';
+import '../../../onboarding/presentation/providers/onboarding_providers.dart';
 import '../providers/auth_providers.dart';
 
 /// Initial screen that restores the user session before routing.
@@ -18,9 +19,20 @@ class _SplashScreenState extends ConsumerState<SplashScreen> {
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      ref.read(authControllerProvider.notifier).restoreSession();
-    });
+    WidgetsBinding.instance.addPostFrameCallback((_) => _bootstrap());
+  }
+
+  Future<void> _bootstrap() async {
+    await ref.read(authControllerProvider.notifier).restoreSession();
+    if (!mounted) return;
+
+    final auth = ref.read(authControllerProvider);
+    if (auth.isAuthenticated) {
+      await resolveOnboardingGate(ref);
+    } else {
+      ref.read(onboardingGateProvider.notifier).state =
+          OnboardingGate.unknown;
+    }
   }
 
   @override

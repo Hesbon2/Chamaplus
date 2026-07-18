@@ -5,6 +5,8 @@ import '../../../../core/api/api_response.dart';
 import '../../../../core/constants/api_constants.dart';
 import '../../../../core/errors/app_exception.dart';
 import '../dtos/login_request_dto.dart';
+import '../dtos/profile_update_dto.dart';
+import '../dtos/register_request_dto.dart';
 import '../dtos/token_response_dto.dart';
 import '../dtos/user_dto.dart';
 import 'auth_remote_data_source.dart';
@@ -14,6 +16,19 @@ class AuthApi implements AuthRemoteDataSource {
   AuthApi(this._apiClient);
 
   final ApiClient _apiClient;
+
+  @override
+  Future<UserDto> register(RegisterRequestDto request) async {
+    final response = await _apiClient.post<Map<String, dynamic>>(
+      ApiConstants.authRegister,
+      data: request.toJson(),
+      options: Options(
+        extra: {ApiConstants.skipAuthKey: true},
+      ),
+    );
+
+    return _parseUserResponse(response.data);
+  }
 
   @override
   Future<TokenResponseDto> login(LoginRequestDto request) async {
@@ -32,6 +47,16 @@ class AuthApi implements AuthRemoteDataSource {
   Future<UserDto> getCurrentUser() async {
     final response = await _apiClient.get<Map<String, dynamic>>(
       ApiConstants.usersMe,
+    );
+
+    return _parseUserResponse(response.data);
+  }
+
+  @override
+  Future<UserDto> updateProfile(ProfileUpdateDto request) async {
+    final response = await _apiClient.patch<Map<String, dynamic>>(
+      ApiConstants.usersMe,
+      data: request.toJson(),
     );
 
     return _parseUserResponse(response.data);

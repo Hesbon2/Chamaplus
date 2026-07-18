@@ -133,6 +133,32 @@ class MemberUser {
   }
 }
 
+/// Input for creating a Chama.
+class CreateChamaInput {
+  const CreateChamaInput({
+    required this.name,
+    this.description,
+    this.location,
+    this.currency = 'KES',
+  });
+
+  final String name;
+  final String? description;
+  final String? location;
+  final String currency;
+}
+
+/// Input for inviting a member by phone.
+class InviteMemberInput {
+  const InviteMemberInput({
+    required this.phoneNumber,
+    this.role = 'member',
+  });
+
+  final String phoneNumber;
+  final String role;
+}
+
 /// Chama membership linking a user to a group.
 class Membership {
   const Membership({

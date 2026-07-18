@@ -2,6 +2,16 @@ import '../entities/user.dart';
 
 /// Contract for authentication operations.
 abstract class AuthRepository {
+  /// Register a new user, then log them in (backend register returns profile only).
+  Future<User> register({
+    required String phoneNumber,
+    required String password,
+    required String passwordConfirm,
+    String? firstName,
+    String? lastName,
+    String? email,
+  });
+
   /// Authenticate with phone number and password.
   Future<User> login({
     required String phoneNumber,
@@ -17,4 +27,11 @@ abstract class AuthRepository {
 
   /// Fetch the authenticated user's profile.
   Future<User> getCurrentUser();
+
+  /// Update profile fields (`first_name`, `last_name`, `email`).
+  Future<User> updateProfile({
+    String? firstName,
+    String? lastName,
+    String? email,
+  });
 }

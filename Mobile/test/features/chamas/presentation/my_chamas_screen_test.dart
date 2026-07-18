@@ -14,6 +14,11 @@ class _FakeRepo implements ChamaRepository {
   }
 
   @override
+  Future<Chama> createChama(CreateChamaInput input) {
+    throw UnimplementedError();
+  }
+
+  @override
   Future<Chama> getChama(String chamaId) {
     throw UnimplementedError();
   }
@@ -28,6 +33,19 @@ class _FakeRepo implements ChamaRepository {
     required String chamaId,
     required String membershipId,
   }) {
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<Membership> inviteMember({
+    required String chamaId,
+    required InviteMemberInput input,
+  }) {
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<Membership> joinChama({required String inviteCode}) {
     throw UnimplementedError();
   }
 

@@ -57,6 +57,11 @@ class _MyChamasScreenState extends ConsumerState<MyChamasScreen> {
 
     return Scaffold(
       appBar: AppBar(title: const Text('My Chamas')),
+      floatingActionButton: FloatingActionButton.extended(
+        onPressed: () => context.push(RoutePaths.createChama),
+        icon: const Icon(Icons.add),
+        label: const Text('Create'),
+      ),
       body: Column(
         children: [
           Padding(
@@ -80,11 +85,22 @@ class _MyChamasScreenState extends ConsumerState<MyChamasScreen> {
               state: state,
               onRefresh: controller.refresh,
               onRetry: controller.retry,
-              emptyTitle: 'No chamas found',
-              emptyMessage: controller.searchQuery.isEmpty
-                  ? 'Join or create a chama to get started.'
-                  : 'Try a different search term.',
-              emptyIcon: Icons.groups_outlined,
+              empty: Padding(
+                padding: const EdgeInsets.all(AppSpacing.md),
+                child: EmptyActionCard(
+                  title: controller.searchQuery.isEmpty
+                      ? 'No chamas yet'
+                      : 'No matches',
+                  message: controller.searchQuery.isEmpty
+                      ? 'Create a chama or join with an invite code to get started.'
+                      : 'Try a different search term.',
+                  icon: Icons.groups_outlined,
+                  actionLabel: 'Create Chama',
+                  onAction: () => context.push(RoutePaths.createChama),
+                  secondaryActionLabel: 'Join with code',
+                  onSecondaryAction: () => context.push(RoutePaths.joinChama),
+                ),
+              ),
               shimmerItemCount: 4,
               shimmerItemHeight: 96,
               builder: (context, chamas) {

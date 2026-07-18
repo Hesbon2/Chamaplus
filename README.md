@@ -85,10 +85,25 @@ import 'package:chamaplus_mobile/shared/api_state.dart';
 | Route | Screen |
 |-------|--------|
 | `/chamas` | My Chamas |
-| `/chamas/:id` | Chama details |
+| `/create-chama` | Create Chama |
+| `/join-chama` | Join with invite code |
+| `/chamas/:id` | Chama details (invite code copy/share) |
+| `/chamas/:id/invite` | Invite members |
 | `/chamas/:id/members` | Members |
 | `/chamas/:id/members/:membershipId` | Member details |
 | `/chamas/:id/join-requests` | Approve / reject invites |
+
+### User onboarding
+
+| Route | Screen |
+|-------|--------|
+| `/register` | Register (auto-login after success) |
+| `/welcome` | Welcome — create or join |
+| `/pending-approval` | Waiting for chairperson approval |
+| `/profile` | Profile |
+| `/profile/edit` | Edit profile |
+
+Shared `EmptyActionCard` guides empty modules toward the next action.
 
 ### Contributions
 
@@ -119,7 +134,16 @@ flutter run
 |--------|----------------|
 | iOS Simulator / desktop | `http://127.0.0.1:8000/api/v1` |
 | Android Emulator | `http://10.0.2.2:8000/api/v1` |
-| Physical device | LAN IP, e.g. `http://192.168.x.x:8000/api/v1` |
+| Physical device (LAN) | e.g. `http://192.168.x.x:8000/api/v1` |
+| Render (remote) | `https://chamaplus-8fzh.onrender.com/api/v1` |
+
+### Typical onboarding flow
+
+1. Register or Sign in
+2. Welcome → Create Chama **or** Join with invite code
+3. Share invite code from Chama details (copy / share)
+4. Invite members by phone (pending until approved under Join requests)
+5. Profile / Edit profile from the dashboard
 
 ### Verify build
 

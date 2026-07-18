@@ -7,6 +7,7 @@ import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/widgets/app_snackbar.dart';
 import '../../../../core/widgets/app_text_field.dart';
 import '../../../../core/widgets/primary_button.dart';
+import '../../../onboarding/presentation/providers/onboarding_providers.dart';
 import '../controllers/login_controller.dart';
 import '../providers/auth_providers.dart';
 import '../utils/validators.dart';
@@ -47,6 +48,13 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
 
     if (user != null) {
       ref.read(authControllerProvider.notifier).setAuthenticated(user);
+      final gate = await resolveOnboardingGate(ref);
+      if (!mounted) return;
+      if (gate == OnboardingGate.needsOnboarding) {
+        context.go(RoutePaths.welcome);
+      } else {
+        context.go(RoutePaths.home);
+      }
     }
   }
 
@@ -120,6 +128,12 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
               label: 'Sign in',
               isLoading: isLoading,
               onPressed: isLoading ? null : _submit,
+            ),
+            const SizedBox(height: AppSpacing.sm),
+            TextButton(
+              onPressed:
+                  isLoading ? null : () => context.push(RoutePaths.register),
+              child: const Text('New here? Create an account'),
             ),
           ],
         ),

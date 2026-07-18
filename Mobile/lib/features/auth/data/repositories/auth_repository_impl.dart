@@ -4,6 +4,8 @@ import '../../domain/entities/user.dart';
 import '../../domain/repositories/auth_repository.dart';
 import '../datasources/auth_remote_data_source.dart';
 import '../dtos/login_request_dto.dart';
+import '../dtos/profile_update_dto.dart';
+import '../dtos/register_request_dto.dart';
 
 /// Concrete [AuthRepository] backed by [AuthRemoteDataSource] and secure storage.
 class AuthRepositoryImpl implements AuthRepository {
@@ -15,6 +17,30 @@ class AuthRepositoryImpl implements AuthRepository {
 
   final AuthRemoteDataSource _authApi;
   final SecureStorageService _secureStorage;
+
+  @override
+  Future<User> register({
+    required String phoneNumber,
+    required String password,
+    required String passwordConfirm,
+    String? firstName,
+    String? lastName,
+    String? email,
+  }) async {
+    await _authApi.register(
+      RegisterRequestDto(
+        phoneNumber: phoneNumber,
+        password: password,
+        passwordConfirm: passwordConfirm,
+        firstName: firstName,
+        lastName: lastName,
+        email: email,
+      ),
+    );
+
+    // Register returns the user profile without tokens — log in immediately.
+    return login(phoneNumber: phoneNumber, password: password);
+  }
 
   @override
   Future<User> login({
@@ -71,6 +97,22 @@ class AuthRepositoryImpl implements AuthRepository {
   @override
   Future<User> getCurrentUser() async {
     final userDto = await _authApi.getCurrentUser();
+    return userDto.toEntity();
+  }
+
+  @override
+  Future<User> updateProfile({
+    String? firstName,
+    String? lastName,
+    String? email,
+  }) async {
+    final userDto = await _authApi.updateProfile(
+      ProfileUpdateDto(
+        firstName: firstName,
+        lastName: lastName,
+        email: email,
+      ),
+    );
     return userDto.toEntity();
   }
 

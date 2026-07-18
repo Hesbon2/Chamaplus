@@ -10,6 +10,7 @@ export 'action_button.dart';
 export 'app_card.dart';
 export 'avatar_badge.dart';
 export 'confirmation_dialog.dart';
+export 'empty_action_card.dart';
 export 'empty_state.dart';
 export 'feature_placeholder_screen.dart';
 export 'info_tile.dart';

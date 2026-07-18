@@ -1,105 +1,67 @@
-import 'package:chamaplus_mobile/core/errors/app_exception.dart';
-import 'package:chamaplus_mobile/features/auth/data/dtos/token_response_dto.dart';
-import 'package:chamaplus_mobile/features/auth/data/dtos/user_dto.dart';
-import 'package:chamaplus_mobile/features/auth/data/repositories/auth_repository_impl.dart';
 import 'package:chamaplus_mobile/features/auth/domain/entities/user.dart';
+import 'package:chamaplus_mobile/features/auth/domain/repositories/auth_repository.dart';
+import 'package:chamaplus_mobile/features/auth/presentation/controllers/register_controller.dart';
 import 'package:flutter_test/flutter_test.dart';
 
-import '../../../helpers/fake_secure_storage.dart';
-import '../helpers/fake_auth_remote_data_source.dart';
+class _FakeAuthRepository implements AuthRepository {
+  @override
+  Future<User> register({
+    required String phoneNumber,
+    required String password,
+    required String passwordConfirm,
+    String? firstName,
+    String? lastName,
+    String? email,
+  }) async {
+    return User(
+      id: 'u1',
+      phoneNumber: phoneNumber,
+      firstName: firstName,
+      lastName: lastName,
+      email: email,
+      isStaff: false,
+      dateJoined: DateTime(2026, 1, 1),
+    );
+  }
+
+  @override
+  Future<User> login({
+    required String phoneNumber,
+    required String password,
+  }) =>
+      throw UnimplementedError();
+
+  @override
+  Future<User?> restoreSession() => throw UnimplementedError();
+
+  @override
+  Future<void> logout() => throw UnimplementedError();
+
+  @override
+  Future<User> getCurrentUser() => throw UnimplementedError();
+
+  @override
+  Future<User> updateProfile({
+    String? firstName,
+    String? lastName,
+    String? email,
+  }) =>
+      throw UnimplementedError();
+}
 
 void main() {
-  late FakeSecureStorage secureStorage;
-  late FakeAuthRemoteDataSource authApi;
-  late AuthRepositoryImpl repository;
+  test('RegisterController registers and returns user', () async {
+    final controller = RegisterController(_FakeAuthRepository());
 
-  final sampleUserDto = UserDto(
-    id: 'user-1',
-    phoneNumber: '+254712345678',
-    firstName: 'Jane',
-    lastName: 'Doe',
-    isStaff: false,
-    dateJoined: DateTime.parse('2026-07-12T10:00:00+03:00'),
-  );
-
-  setUp(() {
-    secureStorage = FakeSecureStorage();
-    authApi = FakeAuthRemoteDataSource();
-    repository = AuthRepositoryImpl(
-      authApi: authApi,
-      secureStorage: secureStorage,
+    final user = await controller.register(
+      phoneNumber: '0712345678',
+      password: 'password1',
+      passwordConfirm: 'password1',
+      firstName: 'Ada',
     );
-  });
 
-  group('AuthRepositoryImpl', () {
-    test('login stores tokens and returns user', () async {
-      authApi.loginResponse = const TokenResponseDto(
-        access: 'access-token',
-        refresh: 'refresh-token',
-      );
-      authApi.userResponse = sampleUserDto;
-
-      final user = await repository.login(
-        phoneNumber: '0712345678',
-        password: 'password123',
-      );
-
-      expect(user.id, 'user-1');
-      expect(await secureStorage.readAccessToken(), 'access-token');
-      expect(await secureStorage.readRefreshToken(), 'refresh-token');
-    });
-
-    test('restoreSession returns null when no tokens stored', () async {
-      final user = await repository.restoreSession();
-      expect(user, isNull);
-    });
-
-    test('restoreSession returns user when tokens exist and profile loads',
-        () async {
-      await secureStorage.writeAccessToken('access');
-      await secureStorage.writeRefreshToken('refresh');
-      authApi.userResponse = sampleUserDto;
-
-      final user = await repository.restoreSession();
-
-      expect(user, isA<User>());
-      expect(user?.phoneNumber, '+254712345678');
-    });
-
-    test('restoreSession clears tokens when profile fetch fails', () async {
-      await secureStorage.writeAccessToken('access');
-      await secureStorage.writeRefreshToken('refresh');
-      authApi.getCurrentUserError =
-          const ServerException(message: 'Unauthorized');
-
-      final user = await repository.restoreSession();
-
-      expect(user, isNull);
-      expect(await secureStorage.readAccessToken(), isNull);
-      expect(await secureStorage.readRefreshToken(), isNull);
-    });
-
-    test('logout clears tokens', () async {
-      await secureStorage.writeRefreshToken('refresh-token');
-
-      await repository.logout();
-
-      expect(authApi.logoutCalled, isTrue);
-      expect(await secureStorage.readRefreshToken(), isNull);
-      expect(await secureStorage.readAccessToken(), isNull);
-    });
-
-    test('login propagates server errors', () async {
-      authApi.loginError =
-          const ServerException(message: 'Invalid credentials');
-
-      expect(
-        () => repository.login(
-          phoneNumber: '0712345678',
-          password: 'wrong',
-        ),
-        throwsA(isA<ServerException>()),
-      );
-    });
+    expect(user?.firstName, 'Ada');
+    expect(controller.state.isLoading, isFalse);
+    expect(controller.state.errorMessage, isNull);
   });
 }

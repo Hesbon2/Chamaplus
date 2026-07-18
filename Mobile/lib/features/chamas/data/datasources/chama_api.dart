@@ -10,6 +10,15 @@ abstract class ChamaRemoteDataSource {
 
   Future<ChamaDto> getChama(String chamaId);
 
+  Future<ChamaDto> createChama(Map<String, dynamic> body);
+
+  Future<MembershipDto> joinChama({required String inviteCode});
+
+  Future<MembershipDto> inviteMember({
+    required String chamaId,
+    required Map<String, dynamic> body,
+  });
+
   Future<Map<String, dynamic>> getDashboard(String chamaId);
 
   Future<MembersPageDto> listMembers({
@@ -61,6 +70,36 @@ class ChamaApi implements ChamaRemoteDataSource {
       ApiConstants.chamaDetail(chamaId),
     );
     return ChamaDto.fromJson(_unwrapMap(response.data));
+  }
+
+  @override
+  Future<ChamaDto> createChama(Map<String, dynamic> body) async {
+    final response = await _apiClient.post<Map<String, dynamic>>(
+      ApiConstants.chamas,
+      data: body,
+    );
+    return ChamaDto.fromJson(_unwrapMap(response.data));
+  }
+
+  @override
+  Future<MembershipDto> joinChama({required String inviteCode}) async {
+    final response = await _apiClient.post<Map<String, dynamic>>(
+      ApiConstants.chamaJoin,
+      data: {'invite_code': inviteCode},
+    );
+    return MembershipDto.fromJson(_unwrapMap(response.data));
+  }
+
+  @override
+  Future<MembershipDto> inviteMember({
+    required String chamaId,
+    required Map<String, dynamic> body,
+  }) async {
+    final response = await _apiClient.post<Map<String, dynamic>>(
+      ApiConstants.chamaInvite(chamaId),
+      data: body,
+    );
+    return MembershipDto.fromJson(_unwrapMap(response.data));
   }
 
   @override

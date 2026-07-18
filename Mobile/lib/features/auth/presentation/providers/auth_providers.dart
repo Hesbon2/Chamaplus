@@ -9,6 +9,7 @@ import '../../domain/repositories/auth_repository.dart';
 import '../controllers/auth_controller.dart';
 import '../controllers/auth_state.dart';
 import '../controllers/login_controller.dart';
+import '../controllers/register_controller.dart';
 
 final authApiProvider = Provider<AuthApi>((ref) {
   return AuthApi(ref.watch(apiClientProvider));
@@ -35,4 +36,9 @@ final authControllerProvider =
 final loginControllerProvider =
     StateNotifierProvider.autoDispose<LoginController, LoginState>((ref) {
   return LoginController(ref.watch(authRepositoryProvider));
+});
+
+final registerControllerProvider =
+    StateNotifierProvider.autoDispose<RegisterController, RegisterState>((ref) {
+  return RegisterController(ref.watch(authRepositoryProvider));
 });

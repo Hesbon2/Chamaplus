@@ -4,8 +4,13 @@ class RoutePaths {
 
   static const String splash = '/splash';
   static const String login = '/login';
+  static const String register = '/register';
   static const String forgotPassword = '/forgot-password';
   static const String home = '/home';
+  static const String welcome = '/welcome';
+  static const String createChama = '/create-chama';
+  static const String joinChama = '/join-chama';
+  static const String pendingApproval = '/pending-approval';
 
   static const String chamas = '/chamas';
   static const String contributions = '/contributions';
@@ -13,6 +18,7 @@ class RoutePaths {
   static const String meetings = '/meetings';
   static const String reports = '/reports';
   static const String profile = '/profile';
+  static const String editProfile = '/profile/edit';
 
   static String chamaDetails(String chamaId) => '/chamas/$chamaId';
   static String chamaMembers(String chamaId) => '/chamas/$chamaId/members';
@@ -20,6 +26,8 @@ class RoutePaths {
       '/chamas/$chamaId/members/$membershipId';
   static String chamaJoinRequests(String chamaId) =>
       '/chamas/$chamaId/join-requests';
+  static String chamaInviteMembers(String chamaId) =>
+      '/chamas/$chamaId/invite';
 
   static String chamaContributions(String chamaId) =>
       '/chamas/$chamaId/contributions';
@@ -56,6 +64,17 @@ class RoutePaths {
   static const Set<String> publicRoutes = {
     splash,
     login,
+    register,
     forgotPassword,
+  };
+
+  /// Authenticated routes allowed before the user has an active chama.
+  static const Set<String> onboardingRoutes = {
+    welcome,
+    createChama,
+    joinChama,
+    pendingApproval,
+    profile,
+    editProfile,
   };
 }

@@ -6,8 +6,12 @@ import '../../features/auth/presentation/controllers/auth_state.dart';
 import '../../features/auth/presentation/providers/auth_providers.dart';
 import '../../features/auth/presentation/screens/forgot_password_screen.dart';
 import '../../features/auth/presentation/screens/login_screen.dart';
+import '../../features/auth/presentation/screens/register_screen.dart';
 import '../../features/auth/presentation/screens/splash_screen.dart';
 import '../../features/chamas/presentation/screens/chama_details_screen.dart';
+import '../../features/chamas/presentation/screens/create_chama_screen.dart';
+import '../../features/chamas/presentation/screens/invite_members_screen.dart';
+import '../../features/chamas/presentation/screens/join_chama_screen.dart';
 import '../../features/chamas/presentation/screens/join_requests_screen.dart';
 import '../../features/chamas/presentation/screens/member_details_screen.dart';
 import '../../features/chamas/presentation/screens/members_screen.dart';
@@ -22,15 +26,23 @@ import '../../features/contributions/presentation/screens/cycles_screen.dart';
 import '../../features/contributions/presentation/screens/member_contribution_summary_screen.dart';
 import '../../features/contributions/presentation/screens/record_contribution_screen.dart';
 import '../../features/dashboard/presentation/screens/dashboard_screen.dart';
+import '../../features/onboarding/presentation/providers/onboarding_providers.dart';
+import '../../features/onboarding/presentation/screens/pending_approval_screen.dart';
+import '../../features/onboarding/presentation/screens/welcome_screen.dart';
+import '../../features/profile/presentation/screens/edit_profile_screen.dart';
+import '../../features/profile/presentation/screens/profile_screen.dart';
 import '../../shared/components/feature_placeholder_screen.dart';
 import 'route_paths.dart';
 
 final _rootNavigatorKey = GlobalKey<NavigatorState>();
 
-/// Notifies GoRouter when auth state changes for redirect evaluation.
+/// Notifies GoRouter when auth or onboarding gate changes.
 class RouterNotifier extends ChangeNotifier {
   RouterNotifier(this._ref) {
     _ref.listen<AuthState>(authControllerProvider, (_, __) {
+      notifyListeners();
+    });
+    _ref.listen<OnboardingGate>(onboardingGateProvider, (_, __) {
       notifyListeners();
     });
   }
@@ -39,6 +51,7 @@ class RouterNotifier extends ChangeNotifier {
 
   String? redirect(BuildContext context, GoRouterState state) {
     final authState = _ref.read(authControllerProvider);
+    final gate = _ref.read(onboardingGateProvider);
     final location = state.matchedLocation;
     final isPublicRoute = RoutePaths.publicRoutes.contains(location);
 
@@ -48,13 +61,33 @@ class RouterNotifier extends ChangeNotifier {
     }
 
     if (authState.isAuthenticated) {
+      if (gate == OnboardingGate.unknown) {
+        return location == RoutePaths.splash ? null : RoutePaths.splash;
+      }
+
       if (isPublicRoute) {
+        return gate == OnboardingGate.needsOnboarding
+            ? RoutePaths.welcome
+            : RoutePaths.home;
+      }
+
+      if (gate == OnboardingGate.needsOnboarding) {
+        if (RoutePaths.onboardingRoutes.contains(location)) {
+          return null;
+        }
+        return RoutePaths.welcome;
+      }
+
+      if (location == RoutePaths.welcome ||
+          location == RoutePaths.pendingApproval) {
         return RoutePaths.home;
       }
+
       return null;
     }
 
     if (location == RoutePaths.login ||
+        location == RoutePaths.register ||
         location == RoutePaths.forgotPassword) {
       return null;
     }
@@ -97,14 +130,51 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         builder: (context, state) => const LoginScreen(),
       ),
       GoRoute(
+        path: RoutePaths.register,
+        name: 'register',
+        builder: (context, state) => const RegisterScreen(),
+      ),
+      GoRoute(
         path: RoutePaths.forgotPassword,
         name: 'forgot-password',
         builder: (context, state) => const ForgotPasswordScreen(),
       ),
       GoRoute(
+        path: RoutePaths.welcome,
+        name: 'welcome',
+        builder: (context, state) => const WelcomeScreen(),
+      ),
+      GoRoute(
+        path: RoutePaths.createChama,
+        name: 'create-chama',
+        builder: (context, state) => const CreateChamaScreen(),
+      ),
+      GoRoute(
+        path: RoutePaths.joinChama,
+        name: 'join-chama',
+        builder: (context, state) => const JoinChamaScreen(),
+      ),
+      GoRoute(
+        path: RoutePaths.pendingApproval,
+        name: 'pending-approval',
+        builder: (context, state) => const PendingApprovalScreen(),
+      ),
+      GoRoute(
         path: RoutePaths.home,
         name: 'home',
         builder: (context, state) => const DashboardScreen(),
+      ),
+      GoRoute(
+        path: RoutePaths.profile,
+        name: 'profile',
+        builder: (context, state) => const ProfileScreen(),
+        routes: [
+          GoRoute(
+            path: 'edit',
+            name: 'edit-profile',
+            builder: (context, state) => const EditProfileScreen(),
+          ),
+        ],
       ),
       GoRoute(
         path: RoutePaths.contributions,
@@ -123,6 +193,13 @@ final appRouterProvider = Provider<GoRouter>((ref) {
               chamaId: state.pathParameters['chamaId']!,
             ),
             routes: [
+              GoRoute(
+                path: 'invite',
+                name: 'chama-invite-members',
+                builder: (context, state) => InviteMembersScreen(
+                  chamaId: state.pathParameters['chamaId']!,
+                ),
+              ),
               GoRoute(
                 path: 'members',
                 name: 'chama-members',
@@ -222,7 +299,6 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       _placeholderRoute(RoutePaths.loans, 'Loans'),
       _placeholderRoute(RoutePaths.meetings, 'Meetings'),
       _placeholderRoute(RoutePaths.reports, 'Reports'),
-      _placeholderRoute(RoutePaths.profile, 'Profile'),
     ],
   );
 });
