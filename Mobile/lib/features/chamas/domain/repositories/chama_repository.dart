@@ -1,4 +1,7 @@
+import '../../../../core/models/paged_result.dart';
 import '../entities/chama.dart';
+
+export '../../../../core/models/paged_result.dart';
 
 /// Contract for Chama management operations.
 abstract class ChamaRepository {

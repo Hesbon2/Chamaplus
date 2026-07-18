@@ -24,6 +24,23 @@ class ApiConstants {
   static String membershipStatus(String membershipId) =>
       '/memberships/$membershipId/status/';
   static const String notifications = '/notifications/';
+
+  // Contributions
+  static String contributionCycles(String chamaId) =>
+      '/chamas/$chamaId/contribution-cycles/';
+  static String contributionCycleDetail(String chamaId, String cycleId) =>
+      '/chamas/$chamaId/contribution-cycles/$cycleId/';
+  static String contributionCycleClose(String chamaId, String cycleId) =>
+      '/chamas/$chamaId/contribution-cycles/$cycleId/close/';
+  static String contributions(String chamaId) =>
+      '/chamas/$chamaId/contributions/';
+  static String contributionDetail(String chamaId, String contributionId) =>
+      '/chamas/$chamaId/contributions/$contributionId/';
+  static String contributionsReport(String chamaId) =>
+      '/chamas/$chamaId/reports/contributions/';
+  static String memberFinancialReport(String chamaId, String memberId) =>
+      '/chamas/$chamaId/reports/members/$memberId/financial/';
+
   static const int defaultPageSize = 20;
 
   /// Dio [RequestOptions.extra] flag — skip attaching Bearer token.

@@ -39,6 +39,10 @@ staticfiles/
 .env.local
 .env.*.local
 
+# TLS certs (Aiven CA, etc.)
+certs/
+*.pem
+
 # IDE
 .idea/
 .vscode/

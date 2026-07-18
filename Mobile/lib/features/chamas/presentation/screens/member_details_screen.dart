@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 
+import '../../../../core/routing/route_paths.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../shared/components/components.dart';
 import '../providers/chama_providers.dart';
@@ -87,7 +89,18 @@ class MemberDetailsScreen extends ConsumerWidget {
                 ),
               ),
               const SizedBox(height: AppSpacing.md),
-              SectionHeader(title: 'Profile'),
+              ActionButton(
+                label: 'Contribution summary',
+                icon: Icons.savings_outlined,
+                onPressed: () => context.push(
+                  RoutePaths.memberContributionSummary(
+                    chamaId,
+                    member.user.id,
+                  ),
+                ),
+              ),
+              const SizedBox(height: AppSpacing.md),
+              const SectionHeader(title: 'Profile'),
               AppCard(
                 padding: EdgeInsets.zero,
                 child: Column(

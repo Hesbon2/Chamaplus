@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import '../../../core/theme/app_spacing.dart';
+import '../../core/theme/app_spacing.dart';
 
 /// Placeholder screen for feature modules not yet implemented.
 class FeaturePlaceholderScreen extends StatelessWidget {

@@ -12,6 +12,15 @@ import '../../features/chamas/presentation/screens/join_requests_screen.dart';
 import '../../features/chamas/presentation/screens/member_details_screen.dart';
 import '../../features/chamas/presentation/screens/members_screen.dart';
 import '../../features/chamas/presentation/screens/my_chamas_screen.dart';
+import '../../features/contributions/presentation/screens/contribution_dashboard_screen.dart';
+import '../../features/contributions/presentation/screens/contribution_details_screen.dart';
+import '../../features/contributions/presentation/screens/contribution_history_screen.dart';
+import '../../features/contributions/presentation/screens/contributions_hub_screen.dart';
+import '../../features/contributions/presentation/screens/create_cycle_screen.dart';
+import '../../features/contributions/presentation/screens/cycle_details_screen.dart';
+import '../../features/contributions/presentation/screens/cycles_screen.dart';
+import '../../features/contributions/presentation/screens/member_contribution_summary_screen.dart';
+import '../../features/contributions/presentation/screens/record_contribution_screen.dart';
 import '../../features/dashboard/presentation/screens/dashboard_screen.dart';
 import '../../shared/components/feature_placeholder_screen.dart';
 import 'route_paths.dart';
@@ -98,6 +107,11 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         builder: (context, state) => const DashboardScreen(),
       ),
       GoRoute(
+        path: RoutePaths.contributions,
+        name: 'contributions-hub',
+        builder: (context, state) => const ContributionsHubScreen(),
+      ),
+      GoRoute(
         path: RoutePaths.chamas,
         name: 'chamas',
         builder: (context, state) => const MyChamasScreen(),
@@ -133,11 +147,78 @@ final appRouterProvider = Provider<GoRouter>((ref) {
                   chamaId: state.pathParameters['chamaId']!,
                 ),
               ),
+              GoRoute(
+                path: 'contributions',
+                name: 'chama-contributions',
+                builder: (context, state) => ContributionDashboardScreen(
+                  chamaId: state.pathParameters['chamaId']!,
+                ),
+                routes: [
+                  GoRoute(
+                    path: 'history',
+                    name: 'contribution-history',
+                    builder: (context, state) => ContributionHistoryScreen(
+                      chamaId: state.pathParameters['chamaId']!,
+                      cycleId: state.uri.queryParameters['cycleId'],
+                      memberId: state.uri.queryParameters['memberId'],
+                    ),
+                  ),
+                  GoRoute(
+                    path: 'record',
+                    name: 'record-contribution',
+                    builder: (context, state) => RecordContributionScreen(
+                      chamaId: state.pathParameters['chamaId']!,
+                    ),
+                  ),
+                  GoRoute(
+                    path: 'members/:memberId',
+                    name: 'member-contribution-summary',
+                    builder: (context, state) =>
+                        MemberContributionSummaryScreen(
+                      chamaId: state.pathParameters['chamaId']!,
+                      memberId: state.pathParameters['memberId']!,
+                      memberName: state.uri.queryParameters['name'],
+                    ),
+                  ),
+                  GoRoute(
+                    path: ':contributionId',
+                    name: 'contribution-details',
+                    builder: (context, state) => ContributionDetailsScreen(
+                      chamaId: state.pathParameters['chamaId']!,
+                      contributionId:
+                          state.pathParameters['contributionId']!,
+                    ),
+                  ),
+                ],
+              ),
+              GoRoute(
+                path: 'contribution-cycles',
+                name: 'contribution-cycles',
+                builder: (context, state) => CyclesScreen(
+                  chamaId: state.pathParameters['chamaId']!,
+                ),
+                routes: [
+                  GoRoute(
+                    path: 'create',
+                    name: 'create-contribution-cycle',
+                    builder: (context, state) => CreateCycleScreen(
+                      chamaId: state.pathParameters['chamaId']!,
+                    ),
+                  ),
+                  GoRoute(
+                    path: ':cycleId',
+                    name: 'cycle-details',
+                    builder: (context, state) => CycleDetailsScreen(
+                      chamaId: state.pathParameters['chamaId']!,
+                      cycleId: state.pathParameters['cycleId']!,
+                    ),
+                  ),
+                ],
+              ),
             ],
           ),
         ],
       ),
-      _placeholderRoute(RoutePaths.contributions, 'Contributions'),
       _placeholderRoute(RoutePaths.loans, 'Loans'),
       _placeholderRoute(RoutePaths.meetings, 'Meetings'),
       _placeholderRoute(RoutePaths.reports, 'Reports'),

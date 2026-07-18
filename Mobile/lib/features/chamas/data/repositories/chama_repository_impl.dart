@@ -1,3 +1,4 @@
+import '../../../../core/models/paged_result.dart';
 import '../../domain/entities/chama.dart';
 import '../../domain/repositories/chama_repository.dart';
 import '../datasources/chama_api.dart';

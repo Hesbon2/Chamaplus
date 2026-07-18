@@ -2,7 +2,7 @@ from .base import *  # noqa: F401, F403
 
 DEBUG = True
 
-ALLOWED_HOSTS = ["localhost", "127.0.0.1", "[::1]"]
+ALLOWED_HOSTS = ["*", "localhost", "127.0.0.1", "[::1]"]
 
 # Development: allow all origins when CORS_ALLOWED_ORIGINS is empty
 if not CORS_ALLOWED_ORIGINS:  # noqa: F405

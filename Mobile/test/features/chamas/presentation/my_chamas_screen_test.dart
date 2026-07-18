@@ -1,3 +1,4 @@
+import 'package:chamaplus_mobile/core/models/paged_result.dart';
 import 'package:chamaplus_mobile/features/chamas/domain/entities/chama.dart';
 import 'package:chamaplus_mobile/features/chamas/presentation/screens/my_chamas_screen.dart';
 import 'package:chamaplus_mobile/features/chamas/presentation/providers/chama_providers.dart';

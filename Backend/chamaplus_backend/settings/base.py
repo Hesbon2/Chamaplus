@@ -90,7 +90,25 @@ TEMPLATES = [
 WSGI_APPLICATION = "chamaplus_backend.wsgi.application"
 ASGI_APPLICATION = "chamaplus_backend.asgi.application"
 
-# Database — MySQL via XAMPP (values from environment)
+# Database — MySQL (local XAMPP or remote e.g. Aiven; values from environment)
+_db_options = {
+    "charset": "utf8mb4",
+    "init_command": "SET sql_mode='STRICT_TRANS_TABLES'",
+}
+# Aiven and other managed MySQL require TLS (ssl-mode=REQUIRED).
+# mysqlclient expects OPTIONS["ssl"] (dict); optional CA path for verification.
+_db_ssl_mode = (env("DB_SSL_MODE", default="") or "").strip().upper()
+_db_ssl_ca = (env("DB_SSL_CA", default="") or "").strip()
+if _db_ssl_mode in {"REQUIRED", "VERIFY_CA", "VERIFY_IDENTITY", "TRUE", "1"}:
+    if _db_ssl_ca:
+        _ca_path = Path(_db_ssl_ca)
+        if not _ca_path.is_absolute():
+            _ca_path = BASE_DIR / _db_ssl_ca
+        _db_options["ssl"] = {"ca": str(_ca_path)}
+    else:
+        # Encrypt without pinning CA (fine for local/dev phone testing).
+        _db_options["ssl"] = {}
+
 DATABASES = {
     "default": {
         "ENGINE": env("DB_ENGINE", default="django.db.backends.mysql"),
@@ -99,10 +117,7 @@ DATABASES = {
         "PASSWORD": env("DB_PASSWORD", default=""),
         "HOST": env("DB_HOST", default="127.0.0.1"),
         "PORT": env("DB_PORT", default="3306"),
-        "OPTIONS": {
-            "charset": "utf8mb4",
-            "init_command": "SET sql_mode='STRICT_TRANS_TABLES'",
-        },
+        "OPTIONS": _db_options,
     }
 }
 

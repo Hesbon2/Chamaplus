@@ -28,7 +28,11 @@ class ErrorHandler {
       case DioExceptionType.receiveTimeout:
         return const TimeoutException();
       case DioExceptionType.connectionError:
-        return NetworkException(cause: error);
+        return NetworkException(
+          message:
+              'Cannot reach the server. Check API_BASE_URL and that Django is running on 0.0.0.0:8000.',
+          cause: error,
+        );
       case DioExceptionType.badResponse:
         return _handleBadResponse(error);
       case DioExceptionType.cancel:

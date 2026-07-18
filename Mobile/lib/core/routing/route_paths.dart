@@ -21,6 +21,38 @@ class RoutePaths {
   static String chamaJoinRequests(String chamaId) =>
       '/chamas/$chamaId/join-requests';
 
+  static String chamaContributions(String chamaId) =>
+      '/chamas/$chamaId/contributions';
+  static String contributionHistory(
+    String chamaId, {
+    String? cycleId,
+    String? memberId,
+  }) {
+    final params = <String, String>{
+      if (cycleId != null) 'cycleId': cycleId,
+      if (memberId != null) 'memberId': memberId,
+    };
+    final uri = Uri(
+      path: '/chamas/$chamaId/contributions/history',
+      queryParameters: params.isEmpty ? null : params,
+    );
+    return uri.toString();
+  }
+
+  static String recordContribution(String chamaId) =>
+      '/chamas/$chamaId/contributions/record';
+  static String contributionDetails(String chamaId, String contributionId) =>
+      '/chamas/$chamaId/contributions/$contributionId';
+  static String memberContributionSummary(String chamaId, String memberId) =>
+      '/chamas/$chamaId/contributions/members/$memberId';
+
+  static String contributionCycles(String chamaId) =>
+      '/chamas/$chamaId/contribution-cycles';
+  static String createContributionCycle(String chamaId) =>
+      '/chamas/$chamaId/contribution-cycles/create';
+  static String cycleDetails(String chamaId, String cycleId) =>
+      '/chamas/$chamaId/contribution-cycles/$cycleId';
+
   static const Set<String> publicRoutes = {
     splash,
     login,

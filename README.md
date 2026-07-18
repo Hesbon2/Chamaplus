@@ -12,7 +12,7 @@ Digital platform for Kenyan savings groups (Chamas) — contributions, loans, me
 
 ## Mobile app (`mobile/`)
 
-Flutter client with authentication, dashboard, design system, form framework, and Chama management.
+Flutter client with authentication, dashboard, design system, form framework, API state framework, Chama management, and contributions.
 
 ### Tech stack
 
@@ -26,11 +26,13 @@ lib/
 ├── core/                  # API, routing, theme, storage
 ├── shared/
 │   ├── components/        # Design system (AppCard, StatCard, …)
-│   └── forms/             # Form framework (AppForm, fields, validators)
+│   ├── forms/             # Form framework (AppForm, fields, validators)
+│   └── api_state.dart     # ApiState, ApiStateBuilder, controllers
 └── features/
     ├── auth/
     ├── dashboard/
-    └── chamas/
+    ├── chamas/
+    └── contributions/
 ```
 
 ### Design system
@@ -65,6 +67,19 @@ import 'package:chamaplus_mobile/shared/forms/forms.dart';
 
 Supported across fields: validation, read-only, disabled, loading (submit), prefix/suffix icons, error text, keyboard types, auto-validation.
 
+### API state framework
+
+```dart
+import 'package:chamaplus_mobile/shared/api_state.dart';
+```
+
+| Piece | Purpose |
+|-------|---------|
+| `ApiState<T>` | Loading / refreshing / success / empty / error |
+| `ApiStateBuilder` | Shimmer, empty, error+retry, pull-to-refresh |
+| `RefreshController` | Single-resource Riverpod notifier |
+| `PaginationController` | Paginated lists + infinite scroll |
+
 ### Chama management
 
 | Route | Screen |
@@ -74,6 +89,22 @@ Supported across fields: validation, read-only, disabled, loading (submit), pref
 | `/chamas/:id/members` | Members |
 | `/chamas/:id/members/:membershipId` | Member details |
 | `/chamas/:id/join-requests` | Approve / reject invites |
+
+### Contributions
+
+| Route | Screen |
+|-------|--------|
+| `/contributions` | Hub — pick a chama |
+| `/chamas/:id/contributions` | Contribution dashboard |
+| `/chamas/:id/contribution-cycles` | Cycles list (search + status filter) |
+| `/chamas/:id/contribution-cycles/create` | Create cycle |
+| `/chamas/:id/contribution-cycles/:cycleId` | Cycle details / close |
+| `/chamas/:id/contributions/history` | History (search, filter, pagination) |
+| `/chamas/:id/contributions/record` | Record contribution |
+| `/chamas/:id/contributions/:contributionId` | Contribution details |
+| `/chamas/:id/contributions/members/:memberId` | Member contribution summary |
+
+Uses design system, form framework, and API state (`RefreshController` / `PaginationController` / `ApiStateBuilder`). Backend APIs: contribution cycles, contributions, reports.
 
 ### Getting started
 

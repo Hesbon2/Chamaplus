@@ -189,18 +189,3 @@ class ChamaDetails {
   final String? contributionsThisCycle;
   final String? outstandingLoans;
 }
-
-/// Generic paginated list result.
-class PagedResult<T> {
-  const PagedResult({
-    required this.items,
-    required this.count,
-    this.nextPage,
-    this.hasMore = false,
-  });
-
-  final List<T> items;
-  final int count;
-  final int? nextPage;
-  final bool hasMore;
-}

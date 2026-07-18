@@ -140,6 +140,8 @@ class _DetailsBody extends StatelessWidget {
                     : '$currency ${details.contributionsThisCycle}',
                 subtitle: details.activeCycleName ?? 'This cycle',
                 icon: Icons.savings_outlined,
+                onTap: () =>
+                    context.push(RoutePaths.chamaContributions(chama.id)),
               ),
             ),
             const SizedBox(width: AppSpacing.sm),
