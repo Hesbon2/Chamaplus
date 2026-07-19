@@ -1,7 +1,9 @@
 from pathlib import Path
+import tempfile
 
 import environ
 from datetime import timedelta
+from django.core.exceptions import ImproperlyConfigured
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent.parent
@@ -96,18 +98,41 @@ _db_options = {
     "init_command": "SET sql_mode='STRICT_TRANS_TABLES'",
 }
 # Aiven and other managed MySQL require TLS (ssl-mode=REQUIRED).
-# mysqlclient expects OPTIONS["ssl"] (dict); optional CA path for verification.
+# mysqlclient expects OPTIONS["ssl"] (dict). Prefer a real CA:
+# - DB_SSL_CA: path to PEM (local), or
+# - DB_SSL_CA_CONTENT: PEM text (Render/env — certs/ is gitignored).
 _db_ssl_mode = (env("DB_SSL_MODE", default="") or "").strip().upper()
 _db_ssl_ca = (env("DB_SSL_CA", default="") or "").strip()
+_db_ssl_ca_content = (env("DB_SSL_CA_CONTENT", default="") or "").strip()
+if _db_ssl_ca_content:
+    _db_ssl_ca_content = _db_ssl_ca_content.replace("\\n", "\n")
 if _db_ssl_mode in {"REQUIRED", "VERIFY_CA", "VERIFY_IDENTITY", "TRUE", "1"}:
-    if _db_ssl_ca:
+    _ssl = {}
+    if _db_ssl_ca_content:
+        _ca_dir = Path(tempfile.gettempdir()) / "chamaplus-db-ssl"
+        _ca_dir.mkdir(parents=True, exist_ok=True)
+        _ca_path = _ca_dir / "ca.pem"
+        _ca_path.write_text(_db_ssl_ca_content + "\n", encoding="utf-8")
+        _ssl["ca"] = str(_ca_path)
+    elif _db_ssl_ca:
         _ca_path = Path(_db_ssl_ca)
         if not _ca_path.is_absolute():
             _ca_path = BASE_DIR / _db_ssl_ca
-        _db_options["ssl"] = {"ca": str(_ca_path)}
-    else:
-        # Encrypt without pinning CA (fine for local/dev phone testing).
-        _db_options["ssl"] = {}
+        if not _ca_path.is_file():
+            raise ImproperlyConfigured(
+                f"DB_SSL_CA file not found: {_ca_path}. "
+                "certs/ is gitignored — on Render set DB_SSL_CA_CONTENT to the "
+                "Aiven CA PEM (download ca.pem from the Aiven console), or mount "
+                "the file and point DB_SSL_CA at it."
+            )
+        _ssl["ca"] = str(_ca_path)
+    elif _db_ssl_mode in {"VERIFY_CA", "VERIFY_IDENTITY", "REQUIRED", "TRUE", "1"}:
+        raise ImproperlyConfigured(
+            "DB_SSL_MODE requires a CA: set DB_SSL_CA (local PEM path) or "
+            "DB_SSL_CA_CONTENT (paste Aiven ca.pem into the Render env var). "
+            "Without a CA, mysqlclient fails with TLS/SSL error 2026."
+        )
+    _db_options["ssl"] = _ssl
 
 DATABASES = {
     "default": {
