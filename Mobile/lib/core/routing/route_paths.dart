@@ -61,6 +61,33 @@ class RoutePaths {
   static String cycleDetails(String chamaId, String cycleId) =>
       '/chamas/$chamaId/contribution-cycles/$cycleId';
 
+  // Loans
+  static String chamaLoans(String chamaId) => '/chamas/$chamaId/loans';
+  static String loanProducts(String chamaId) =>
+      '/chamas/$chamaId/loans/products';
+  static String loanProductDetails(String chamaId, String productId) =>
+      '/chamas/$chamaId/loans/products/$productId';
+  static String loanCalculator(String chamaId) =>
+      '/chamas/$chamaId/loans/calculator';
+  static String applyLoan(String chamaId, {String? productId}) {
+    final uri = Uri(
+      path: '/chamas/$chamaId/loans/apply',
+      queryParameters: productId == null ? null : {'productId': productId},
+    );
+    return uri.toString();
+  }
+
+  static String loanDetails(String chamaId, String applicationId) =>
+      '/chamas/$chamaId/loans/applications/$applicationId';
+  static String loanCommitteeVoting(String chamaId, String applicationId) =>
+      '/chamas/$chamaId/loans/applications/$applicationId/vote';
+  static String loanRepaymentHistory(String chamaId, String applicationId) =>
+      '/chamas/$chamaId/loans/applications/$applicationId/repayments';
+  static String activeLoan(String chamaId, String applicationId) =>
+      '/chamas/$chamaId/loans/applications/$applicationId/active';
+  static String loanHistory(String chamaId) =>
+      '/chamas/$chamaId/loans/history';
+
   static const Set<String> publicRoutes = {
     splash,
     login,

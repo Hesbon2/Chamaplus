@@ -26,6 +26,17 @@ import '../../features/contributions/presentation/screens/cycles_screen.dart';
 import '../../features/contributions/presentation/screens/member_contribution_summary_screen.dart';
 import '../../features/contributions/presentation/screens/record_contribution_screen.dart';
 import '../../features/dashboard/presentation/screens/dashboard_screen.dart';
+import '../../features/loans/presentation/screens/active_loan_screen.dart';
+import '../../features/loans/presentation/screens/apply_loan_screen.dart';
+import '../../features/loans/presentation/screens/committee_voting_screen.dart';
+import '../../features/loans/presentation/screens/loan_calculator_screen.dart';
+import '../../features/loans/presentation/screens/loan_dashboard_screen.dart';
+import '../../features/loans/presentation/screens/loan_details_screen.dart';
+import '../../features/loans/presentation/screens/loan_history_screen.dart';
+import '../../features/loans/presentation/screens/loan_product_details_screen.dart';
+import '../../features/loans/presentation/screens/loan_products_screen.dart';
+import '../../features/loans/presentation/screens/loans_hub_screen.dart';
+import '../../features/loans/presentation/screens/repayment_history_screen.dart';
 import '../../features/onboarding/presentation/providers/onboarding_providers.dart';
 import '../../features/onboarding/presentation/screens/pending_approval_screen.dart';
 import '../../features/onboarding/presentation/screens/welcome_screen.dart';
@@ -182,6 +193,11 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         builder: (context, state) => const ContributionsHubScreen(),
       ),
       GoRoute(
+        path: RoutePaths.loans,
+        name: 'loans-hub',
+        builder: (context, state) => const LoansHubScreen(),
+      ),
+      GoRoute(
         path: RoutePaths.chamas,
         name: 'chamas',
         builder: (context, state) => const MyChamasScreen(),
@@ -292,11 +308,97 @@ final appRouterProvider = Provider<GoRouter>((ref) {
                   ),
                 ],
               ),
+              GoRoute(
+                path: 'loans',
+                name: 'chama-loans',
+                builder: (context, state) => LoanDashboardScreen(
+                  chamaId: state.pathParameters['chamaId']!,
+                ),
+                routes: [
+                  GoRoute(
+                    path: 'products',
+                    name: 'loan-products',
+                    builder: (context, state) => LoanProductsScreen(
+                      chamaId: state.pathParameters['chamaId']!,
+                    ),
+                    routes: [
+                      GoRoute(
+                        path: ':productId',
+                        name: 'loan-product-details',
+                        builder: (context, state) => LoanProductDetailsScreen(
+                          chamaId: state.pathParameters['chamaId']!,
+                          productId: state.pathParameters['productId']!,
+                        ),
+                      ),
+                    ],
+                  ),
+                  GoRoute(
+                    path: 'calculator',
+                    name: 'loan-calculator',
+                    builder: (context, state) => LoanCalculatorScreen(
+                      chamaId: state.pathParameters['chamaId']!,
+                    ),
+                  ),
+                  GoRoute(
+                    path: 'apply',
+                    name: 'apply-loan',
+                    builder: (context, state) => ApplyLoanScreen(
+                      chamaId: state.pathParameters['chamaId']!,
+                      initialProductId:
+                          state.uri.queryParameters['productId'],
+                    ),
+                  ),
+                  GoRoute(
+                    path: 'history',
+                    name: 'loan-history',
+                    builder: (context, state) => LoanHistoryScreen(
+                      chamaId: state.pathParameters['chamaId']!,
+                    ),
+                  ),
+                  GoRoute(
+                    path: 'applications/:applicationId',
+                    name: 'loan-details',
+                    builder: (context, state) => LoanDetailsScreen(
+                      chamaId: state.pathParameters['chamaId']!,
+                      applicationId:
+                          state.pathParameters['applicationId']!,
+                    ),
+                    routes: [
+                      GoRoute(
+                        path: 'vote',
+                        name: 'loan-committee-voting',
+                        builder: (context, state) => CommitteeVotingScreen(
+                          chamaId: state.pathParameters['chamaId']!,
+                          applicationId:
+                              state.pathParameters['applicationId']!,
+                        ),
+                      ),
+                      GoRoute(
+                        path: 'repayments',
+                        name: 'loan-repayment-history',
+                        builder: (context, state) => RepaymentHistoryScreen(
+                          chamaId: state.pathParameters['chamaId']!,
+                          applicationId:
+                              state.pathParameters['applicationId']!,
+                        ),
+                      ),
+                      GoRoute(
+                        path: 'active',
+                        name: 'active-loan',
+                        builder: (context, state) => ActiveLoanScreen(
+                          chamaId: state.pathParameters['chamaId']!,
+                          applicationId:
+                              state.pathParameters['applicationId']!,
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
             ],
           ),
         ],
       ),
-      _placeholderRoute(RoutePaths.loans, 'Loans'),
       _placeholderRoute(RoutePaths.meetings, 'Meetings'),
       _placeholderRoute(RoutePaths.reports, 'Reports'),
     ],

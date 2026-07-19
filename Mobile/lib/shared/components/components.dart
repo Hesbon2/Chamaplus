@@ -14,6 +14,7 @@ export 'empty_action_card.dart';
 export 'empty_state.dart';
 export 'feature_placeholder_screen.dart';
 export 'info_tile.dart';
+export 'progress_stat_card.dart';
 export 'section_header.dart';
 export 'shimmer_loader.dart';
 export 'stat_card.dart';

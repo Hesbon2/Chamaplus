@@ -44,6 +44,38 @@ class ApiConstants {
   static String memberFinancialReport(String chamaId, String memberId) =>
       '/chamas/$chamaId/reports/members/$memberId/financial/';
 
+  // Loans
+  static String loanProducts(String chamaId) =>
+      '/chamas/$chamaId/loan-products/';
+  static String loanProductDetail(String chamaId, String productId) =>
+      '/chamas/$chamaId/loan-products/$productId/';
+  static String loanApplications(String chamaId) =>
+      '/chamas/$chamaId/loan-applications/';
+  static String loanApplicationDetail(String chamaId, String applicationId) =>
+      '/chamas/$chamaId/loan-applications/$applicationId/';
+  static String loanApplicationSubmit(String chamaId, String applicationId) =>
+      '/chamas/$chamaId/loan-applications/$applicationId/submit/';
+  static String loanApplicationCancel(String chamaId, String applicationId) =>
+      '/chamas/$chamaId/loan-applications/$applicationId/cancel/';
+  static String loanApplicationApprove(String chamaId, String applicationId) =>
+      '/chamas/$chamaId/loan-applications/$applicationId/approve/';
+  static String loanApplicationReject(String chamaId, String applicationId) =>
+      '/chamas/$chamaId/loan-applications/$applicationId/reject/';
+  static String loanApplicationDisburse(String chamaId, String applicationId) =>
+      '/chamas/$chamaId/loan-applications/$applicationId/disburse/';
+  static String loanVotes(String chamaId, String applicationId) =>
+      '/chamas/$chamaId/loan-applications/$applicationId/votes/';
+  static String loanRepayments(String chamaId, String applicationId) =>
+      '/chamas/$chamaId/loan-applications/$applicationId/repayments/';
+  static String loanRepaymentDetail(
+    String chamaId,
+    String applicationId,
+    String repaymentId,
+  ) =>
+      '/chamas/$chamaId/loan-applications/$applicationId/repayments/$repaymentId/';
+  static String memberCreditScoreCurrent(String chamaId, String memberId) =>
+      '/chamas/$chamaId/members/$memberId/credit-scores/current/';
+
   static const int defaultPageSize = 20;
 
   /// Dio [RequestOptions.extra] flag — skip attaching Bearer token.
