@@ -44,18 +44,17 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
           password: _passwordController.text,
         );
 
+    if (!mounted || user == null) return;
+
+    // Resolve gate before setAuthenticated — otherwise router sees
+    // authenticated + unknown gate, redirects to splash, and disposes this
+    // screen while resolveOnboardingGate is still running.
+    await resolveOnboardingGate(ProviderScope.containerOf(context));
     if (!mounted) return;
 
-    if (user != null) {
-      ref.read(authControllerProvider.notifier).setAuthenticated(user);
-      final gate = await resolveOnboardingGate(ref);
-      if (!mounted) return;
-      if (gate == OnboardingGate.needsOnboarding) {
-        context.go(RoutePaths.welcome);
-      } else {
-        context.go(RoutePaths.home);
-      }
-    }
+    ref.read(authControllerProvider.notifier).setAuthenticated(user);
+    // GoRouter redirect handles navigation (avoid a second context.go —
+    // overlapping transitions trip Hero flight assertions).
   }
 
   @override

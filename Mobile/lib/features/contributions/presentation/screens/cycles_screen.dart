@@ -36,6 +36,7 @@ class _CyclesScreenState extends ConsumerState<CyclesScreen> {
   void _onSearchChanged(String value) {
     _debounce?.cancel();
     _debounce = Timer(const Duration(milliseconds: 400), () {
+      if (!mounted) return;
       ref.read(cyclesControllerProvider(widget.chamaId).notifier).search(value);
     });
   }

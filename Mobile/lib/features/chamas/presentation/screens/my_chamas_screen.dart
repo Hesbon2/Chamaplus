@@ -46,6 +46,7 @@ class _MyChamasScreenState extends ConsumerState<MyChamasScreen> {
   void _onSearchChanged(String value) {
     _debounce?.cancel();
     _debounce = Timer(const Duration(milliseconds: 400), () {
+      if (!mounted) return;
       ref.read(chamaListControllerProvider.notifier).search(value);
     });
   }

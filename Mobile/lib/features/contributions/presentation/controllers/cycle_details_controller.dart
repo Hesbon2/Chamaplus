@@ -34,15 +34,19 @@ class CycleDetailsController extends RefreshController<ContributionCycle> {
         chamaId: _chamaId,
         cycleId: _cycleId,
       );
+      if (!mounted) return false;
       state = ApiState.success(updated);
       return true;
     } catch (error) {
+      if (!mounted) return false;
       actionError = error.toString();
       state = state.copyWith();
       return false;
     } finally {
       isClosing = false;
-      state = state.copyWith();
+      if (mounted) {
+        state = state.copyWith();
+      }
     }
   }
 }

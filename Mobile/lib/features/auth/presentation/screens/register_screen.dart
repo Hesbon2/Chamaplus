@@ -57,11 +57,14 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
 
     if (!mounted || user == null) return;
 
-    ref.read(authControllerProvider.notifier).setAuthenticated(user);
-    await resolveOnboardingGate(ref);
+    // Resolve gate before setAuthenticated to avoid disposing this screen
+    // (router redirects authenticated + unknown → splash).
+    await resolveOnboardingGate(ProviderScope.containerOf(context));
     if (!mounted) return;
+
     AppSnackbar.success(context, 'Welcome to ChamaPlus!');
-    context.go(RoutePaths.welcome);
+    ref.read(authControllerProvider.notifier).setAuthenticated(user);
+    // GoRouter redirect handles navigation — do not also call context.go.
   }
 
   @override

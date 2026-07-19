@@ -65,6 +65,7 @@ class _ContributionHistoryScreenState
   void _onSearchChanged(String value) {
     _debounce?.cancel();
     _debounce = Timer(const Duration(milliseconds: 400), () {
+      if (!mounted) return;
       ref
           .read(contributionHistoryControllerProvider(_args).notifier)
           .search(value);

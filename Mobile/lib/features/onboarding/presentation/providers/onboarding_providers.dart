@@ -18,16 +18,19 @@ final onboardingGateProvider =
     StateProvider<OnboardingGate>((ref) => OnboardingGate.unknown);
 
 /// Resolves whether the user should see Welcome or Home.
-Future<OnboardingGate> resolveOnboardingGate(WidgetRef ref) async {
+///
+/// Uses [ProviderContainer] (not [WidgetRef]) so it stays valid if the
+/// calling widget is disposed mid-await (e.g. auth redirect).
+Future<OnboardingGate> resolveOnboardingGate(ProviderContainer container) async {
   try {
-    final chamas = await ref.read(chamaRepositoryProvider).listChamas();
+    final chamas = await container.read(chamaRepositoryProvider).listChamas();
     final gate = chamas.isEmpty
         ? OnboardingGate.needsOnboarding
         : OnboardingGate.ready;
-    ref.read(onboardingGateProvider.notifier).state = gate;
+    container.read(onboardingGateProvider.notifier).state = gate;
     return gate;
   } catch (_) {
-    ref.read(onboardingGateProvider.notifier).state =
+    container.read(onboardingGateProvider.notifier).state =
         OnboardingGate.needsOnboarding;
     return OnboardingGate.needsOnboarding;
   }

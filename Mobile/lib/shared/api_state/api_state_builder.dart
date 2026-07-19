@@ -78,6 +78,11 @@ class ApiStateBuilder<T> extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final Widget child;
+    // Only force a scroll wrapper for static empty/error/shimmer bodies.
+    // Success/custom-loading widgets often embed their own ListView; wrapping
+    // those in SingleChildScrollView causes "Vertical viewport was given
+    // unbounded height".
+    var ensureScrollable = true;
 
     if (state.showLoading) {
       child = loading ??
@@ -88,6 +93,7 @@ class ApiStateBuilder<T> extends StatelessWidget {
               itemHeight: shimmerItemHeight,
             ),
           );
+      ensureScrollable = loading == null;
     } else if (state.isError && !state.hasValue) {
       child = _buildError(context);
     } else if (state.isEmpty ||
@@ -115,6 +121,7 @@ class ApiStateBuilder<T> extends StatelessWidget {
       } else {
         child = content;
       }
+      ensureScrollable = false;
     } else {
       child = _buildError(context);
     }
@@ -125,7 +132,7 @@ class ApiStateBuilder<T> extends StatelessWidget {
 
     return RefreshIndicator(
       onRefresh: onRefresh!,
-      child: child is ScrollView
+      child: child is ScrollView || !ensureScrollable
           ? child
           : _ensureScrollable(context, child),
     );

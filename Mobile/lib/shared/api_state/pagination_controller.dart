@@ -42,6 +42,7 @@ abstract class PaginationController<T>
 
   /// Initial / retry load (resets pagination).
   Future<void> load() async {
+    if (!mounted) return;
     state = const ApiState.loading();
     _page = 0;
     totalCount = null;
@@ -50,6 +51,7 @@ abstract class PaginationController<T>
 
   /// Pull-to-refresh.
   Future<void> refresh() async {
+    if (!mounted) return;
     final previous = state.data;
     if (previous != null) {
       state = ApiState.refreshing(previous);
@@ -64,12 +66,14 @@ abstract class PaginationController<T>
 
   /// Appends the next page when [ApiState.hasMore] is true.
   Future<void> loadMore() async {
+    if (!mounted) return;
     if (!state.hasMore || state.isLoadingMore || state.isLoading) return;
 
     state = state.copyWith(isLoadingMore: true);
     try {
       final nextPage = _page + 1;
       final result = await fetchPage(page: nextPage, pageSize: pageSize);
+      if (!mounted) return;
       _page = nextPage;
       totalCount = result.totalCount ?? totalCount;
       final merged = [...items, ...result.items];
@@ -79,6 +83,7 @@ abstract class PaginationController<T>
         isLoadingMore: false,
       );
     } on AppException catch (error, stackTrace) {
+      if (!mounted) return;
       state = ApiState.error(
         error,
         stackTrace: stackTrace,
@@ -86,6 +91,7 @@ abstract class PaginationController<T>
         message: error.message,
       ).copyWith(isLoadingMore: false, hasMore: state.hasMore);
     } catch (error, stackTrace) {
+      if (!mounted) return;
       state = ApiState.error(
         error,
         stackTrace: stackTrace,
@@ -97,6 +103,7 @@ abstract class PaginationController<T>
   Future<void> _fetchAndMerge({required bool keepPrevious}) async {
     try {
       final result = await fetchPage(page: 1, pageSize: pageSize);
+      if (!mounted) return;
       _page = 1;
       totalCount = result.totalCount;
       if (result.items.isEmpty) {
@@ -108,6 +115,7 @@ abstract class PaginationController<T>
         );
       }
     } on AppException catch (error, stackTrace) {
+      if (!mounted) return;
       state = ApiState.error(
         error,
         stackTrace: stackTrace,
@@ -115,6 +123,7 @@ abstract class PaginationController<T>
         message: error.message,
       );
     } catch (error, stackTrace) {
+      if (!mounted) return;
       state = ApiState.error(
         error,
         stackTrace: stackTrace,

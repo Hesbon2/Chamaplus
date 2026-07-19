@@ -64,6 +64,7 @@ class JoinRequestsController extends PaginationController<Membership> {
 
     try {
       await action();
+      if (!mounted) return;
       final updated = items.where((r) => r.id != membershipId).toList();
       processingIds = {...processingIds}..remove(membershipId);
       actionMessage = successMessage;
@@ -80,10 +81,12 @@ class JoinRequestsController extends PaginationController<Membership> {
         );
       }
     } on AppException catch (error) {
+      if (!mounted) return;
       processingIds = {...processingIds}..remove(membershipId);
       errorMessage = error.message;
       state = state.copyWith();
     } catch (_) {
+      if (!mounted) return;
       processingIds = {...processingIds}..remove(membershipId);
       errorMessage = 'Action failed. Please try again.';
       state = state.copyWith();

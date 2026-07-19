@@ -18,6 +18,7 @@ abstract class RefreshController<T> extends StateNotifier<ApiState<T>> {
 
   /// First load (blocking / shimmer).
   Future<void> load({bool forceRefresh = false}) async {
+    if (!mounted) return;
     if (!forceRefresh && state.isSuccess && state.hasValue) {
       return;
     }
@@ -28,6 +29,7 @@ abstract class RefreshController<T> extends StateNotifier<ApiState<T>> {
 
   /// Pull-to-refresh while keeping previous data visible when available.
   Future<void> refresh() async {
+    if (!mounted) return;
     final previous = state.data;
     if (previous != null) {
       state = ApiState.refreshing(previous);
@@ -46,12 +48,14 @@ abstract class RefreshController<T> extends StateNotifier<ApiState<T>> {
   }) async {
     try {
       final data = await fetchData(forceRefresh: forceRefresh);
+      if (!mounted) return;
       if (isEmptyData(data)) {
         state = const ApiState.empty();
       } else {
         state = ApiState.success(data);
       }
     } on AppException catch (error, stackTrace) {
+      if (!mounted) return;
       state = ApiState.error(
         error,
         stackTrace: stackTrace,
@@ -59,6 +63,7 @@ abstract class RefreshController<T> extends StateNotifier<ApiState<T>> {
         message: error.message,
       );
     } catch (error, stackTrace) {
+      if (!mounted) return;
       state = ApiState.error(
         error,
         stackTrace: stackTrace,

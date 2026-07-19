@@ -28,7 +28,7 @@ class _SplashScreenState extends ConsumerState<SplashScreen> {
 
     final auth = ref.read(authControllerProvider);
     if (auth.isAuthenticated) {
-      await resolveOnboardingGate(ref);
+      await resolveOnboardingGate(ProviderScope.containerOf(context));
     } else {
       ref.read(onboardingGateProvider.notifier).state =
           OnboardingGate.unknown;
