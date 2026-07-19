@@ -98,22 +98,33 @@ _db_options = {
     "init_command": "SET sql_mode='STRICT_TRANS_TABLES'",
 }
 # Aiven and other managed MySQL require TLS (ssl-mode=REQUIRED).
-# mysqlclient expects OPTIONS["ssl"] (dict). Prefer a real CA:
-# - DB_SSL_CA: path to PEM (local), or
-# - DB_SSL_CA_CONTENT: PEM text (Render/env — certs/ is gitignored).
+# mysqlclient expects OPTIONS["ssl"] (dict). Provide a CA via:
+# - DB_SSL_CA: local PEM path, OR paste PEM text (Render-friendly)
+# - DB_SSL_CA_CONTENT: PEM text (alias for pasting into env)
 _db_ssl_mode = (env("DB_SSL_MODE", default="") or "").strip().upper()
 _db_ssl_ca = (env("DB_SSL_CA", default="") or "").strip()
 _db_ssl_ca_content = (env("DB_SSL_CA_CONTENT", default="") or "").strip()
-if _db_ssl_ca_content:
-    _db_ssl_ca_content = _db_ssl_ca_content.replace("\\n", "\n")
+
+
+def _normalize_pem(value: str) -> str:
+    return value.replace("\\n", "\n").strip()
+
+
+def _write_ssl_ca_pem(pem: str) -> str:
+    ca_dir = Path(tempfile.gettempdir()) / "chamaplus-db-ssl"
+    ca_dir.mkdir(parents=True, exist_ok=True)
+    ca_path = ca_dir / "ca.pem"
+    ca_path.write_text(_normalize_pem(pem) + "\n", encoding="utf-8")
+    return str(ca_path)
+
+
 if _db_ssl_mode in {"REQUIRED", "VERIFY_CA", "VERIFY_IDENTITY", "TRUE", "1"}:
     _ssl = {}
-    if _db_ssl_ca_content:
-        _ca_dir = Path(tempfile.gettempdir()) / "chamaplus-db-ssl"
-        _ca_dir.mkdir(parents=True, exist_ok=True)
-        _ca_path = _ca_dir / "ca.pem"
-        _ca_path.write_text(_db_ssl_ca_content + "\n", encoding="utf-8")
-        _ssl["ca"] = str(_ca_path)
+    _pem = _db_ssl_ca_content or (
+        _db_ssl_ca if "BEGIN CERTIFICATE" in _db_ssl_ca else ""
+    )
+    if _pem:
+        _ssl["ca"] = _write_ssl_ca_pem(_pem)
     elif _db_ssl_ca:
         _ca_path = Path(_db_ssl_ca)
         if not _ca_path.is_absolute():
@@ -121,16 +132,14 @@ if _db_ssl_mode in {"REQUIRED", "VERIFY_CA", "VERIFY_IDENTITY", "TRUE", "1"}:
         if not _ca_path.is_file():
             raise ImproperlyConfigured(
                 f"DB_SSL_CA file not found: {_ca_path}. "
-                "certs/ is gitignored — on Render set DB_SSL_CA_CONTENT to the "
-                "Aiven CA PEM (download ca.pem from the Aiven console), or mount "
-                "the file and point DB_SSL_CA at it."
+                "On Render, paste the Aiven ca.pem contents into DB_SSL_CA "
+                "(or DB_SSL_CA_CONTENT) instead of a local path."
             )
         _ssl["ca"] = str(_ca_path)
-    elif _db_ssl_mode in {"VERIFY_CA", "VERIFY_IDENTITY", "REQUIRED", "TRUE", "1"}:
+    else:
         raise ImproperlyConfigured(
-            "DB_SSL_MODE requires a CA: set DB_SSL_CA (local PEM path) or "
-            "DB_SSL_CA_CONTENT (paste Aiven ca.pem into the Render env var). "
-            "Without a CA, mysqlclient fails with TLS/SSL error 2026."
+            "DB_SSL_MODE requires a CA: set DB_SSL_CA to a PEM path or paste "
+            "the Aiven ca.pem into DB_SSL_CA / DB_SSL_CA_CONTENT."
         )
     _db_options["ssl"] = _ssl
 
