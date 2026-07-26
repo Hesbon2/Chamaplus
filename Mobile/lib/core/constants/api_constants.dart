@@ -22,11 +22,33 @@ class ApiConstants {
   static String chamaDashboard(String chamaId) => '/chamas/$chamaId/dashboard/';
   static String chamaMembers(String chamaId) => '/chamas/$chamaId/members/';
   static String chamaMeetings(String chamaId) => '/chamas/$chamaId/meetings/';
+  static String chamaMeetingDetail(String chamaId, String meetingId) =>
+      '/chamas/$chamaId/meetings/$meetingId/';
+  static String chamaMeetingStart(String chamaId, String meetingId) =>
+      '/chamas/$chamaId/meetings/$meetingId/start/';
+  static String chamaMeetingClose(String chamaId, String meetingId) =>
+      '/chamas/$chamaId/meetings/$meetingId/close/';
+  static String chamaMeetingAttendance(String chamaId, String meetingId) =>
+      '/chamas/$chamaId/meetings/$meetingId/attendance/';
+  static String chamaMeetingAttendanceDetail(
+    String chamaId,
+    String meetingId,
+    String attendanceId,
+  ) =>
+      '/chamas/$chamaId/meetings/$meetingId/attendance/$attendanceId/';
+  static String chamaMeetingMinutes(String chamaId, String meetingId) =>
+      '/chamas/$chamaId/meetings/$meetingId/minutes/';
+  static String chamaMeetingMinutesApprove(String chamaId, String meetingId) =>
+      '/chamas/$chamaId/meetings/$meetingId/minutes/approve/';
   static String chamaMonthlyReport(String chamaId) =>
       '/chamas/$chamaId/reports/monthly/';
   static String membershipStatus(String membershipId) =>
       '/memberships/$membershipId/status/';
   static const String notifications = '/notifications/';
+  static String notificationDetail(String notificationId) =>
+      '/notifications/$notificationId/';
+  static const String notificationsMarkAllRead =
+      '/notifications/mark-all-read/';
 
   // Contributions
   static String contributionCycles(String chamaId) =>

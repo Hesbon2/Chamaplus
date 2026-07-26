@@ -18,6 +18,59 @@ Shared frameworks:
 
 API base URL defaults to `http://127.0.0.1:8000/api/v1` (see `.env` / `EnvConfig`).
 
+## Application shell
+
+Path: `lib/shared/navigation/`
+
+Persistent bottom navigation is implemented with GoRouter
+`StatefulShellRoute.indexedStack` so each tab keeps its own navigator stack.
+
+### Bottom navigation
+
+| Tab | Route | Screen |
+|-----|-------|--------|
+| Home | `/home` | Dashboard |
+| Chamas | `/chamas` | My chamas (+ nested chama features) |
+| Loans | `/loans` | Loans hub (pick chama) |
+| Alerts | `/alerts` | Alerts tab (notifications-ready) |
+| More | `/more` | Overflow: governance, contributions, profile, reports, settings |
+
+Full-screen destinations that cover the shell (root navigator):
+
+- `/profile`, `/profile/edit`
+- `/contributions`, `/meetings` (hubs)
+- `/reports`, `/settings` (placeholders — Reports paused; Settings ready to plug in)
+
+### Shell building blocks
+
+| File | Role |
+|------|------|
+| `app_shell.dart` | Wraps `StatefulNavigationShell` |
+| `app_shell_scaffold.dart` | Scaffold + FAB + bottom nav |
+| `app_bottom_navigation.dart` | Material 3 `NavigationBar` |
+| `navigation_provider.dart` | Badge counts + shell context |
+| `role_navigation_service.dart` | Role-aware quick actions |
+| `quick_actions_sheet.dart` | FAB modal sheet |
+| `navigation_badge.dart` | Reusable badge overlay |
+
+### Home FAB
+
+Shown only on the Home tab. Opens `QuickActionsSheet` with actions from
+`RoleNavigationService` based on the active chama role (chairperson, treasurer,
+secretary, committee member, member).
+
+### Reusable widgets
+
+- `NavigationBadge`
+- `QuickActionTile`
+- `BottomNavItem`
+
+Import via:
+
+```dart
+import 'package:chamaplus_mobile/shared/navigation/navigation.dart';
+```
+
 ## Loans module
 
 Path: `lib/features/loans/`
@@ -57,6 +110,83 @@ Envelope responses `{ success, message, data }` are unwrapped in `LoanApi`.
 ### Shared progress widget
 
 `ProgressStatCard` (`lib/shared/components/progress_stat_card.dart`) is generic and reused for loan outstanding progress, repayment progress, calculator principal share, and voting progress.
+
+## Meetings / Governance module
+
+Path: `lib/features/meetings/`
+
+### Routes
+
+| Route | Screen |
+|-------|--------|
+| `/meetings` | Meetings hub (pick chama) |
+| `/chamas/:chamaId/meetings` | Governance dashboard |
+| `/chamas/:chamaId/meetings/list` | All meetings |
+| `/chamas/:chamaId/meetings/upcoming` | Upcoming meetings |
+| `/chamas/:chamaId/meetings/schedule` | Schedule meeting |
+| `/chamas/:chamaId/meetings/:meetingId` | Meeting details |
+| `/chamas/:chamaId/meetings/:meetingId/attendance` | Attendance |
+| `/chamas/:chamaId/meetings/:meetingId/minutes` | Minutes (save / approve) |
+| `/chamas/:chamaId/meetings/:meetingId/action-items` | Action items (from minutes JSON) |
+
+### API mapping
+
+All paths are relative to `/api/v1` and chama-scoped. Meetings are not paginated.
+
+| Client helper | Backend |
+|---------------|---------|
+| `GET/POST /chamas/{id}/meetings/` | List / schedule |
+| `GET/PATCH/DELETE /chamas/{id}/meetings/{mid}/` | Detail / update / cancel |
+| `POST .../meetings/{mid}/start/` | Start meeting |
+| `POST .../meetings/{mid}/close/` | Close meeting |
+| `GET/POST .../meetings/{mid}/attendance/` | Roster / record |
+| `PATCH .../meetings/{mid}/attendance/{aid}/` | Update attendance |
+| `GET/POST/PATCH .../meetings/{mid}/minutes/` | Minutes CRUD |
+| `POST .../meetings/{mid}/minutes/approve/` | Approve minutes |
+
+Statuses: `scheduled \| ongoing \| completed \| cancelled`. Attendance: `present \| late \| absent \| excused`. Action items live in minutes JSON (`action_items`), not a separate CRUD API.
+
+Envelope responses `{ success, message, data }` are unwrapped in `MeetingApi`.
+
+### Shared widgets
+
+- `TimelineCard` (`lib/shared/components/timeline_card.dart`) — generic lifecycle / progress timeline reused on governance dashboard, meeting details, minutes, and action items.
+- `ProgressStatCard` — meeting completion progress on the governance dashboard.
+
+## Notifications module
+
+Path: `lib/features/notifications/`
+
+### Routes (Alerts shell tab)
+
+| Route | Screen |
+|-------|--------|
+| `/alerts` | Notifications dashboard |
+| `/alerts/list` | Full inbox (optional `?unread=1`) |
+| `/alerts/:notificationId` | Notification details + deep link |
+
+### API mapping
+
+Relative to `/api/v1`:
+
+| Client helper | Backend |
+|---------------|---------|
+| `GET /notifications/` | Paginated list (`is_read`, `page`, `page_size`, `ordering`) |
+| `GET /notifications/{id}/` | Detail |
+| `PATCH /notifications/{id}/` | Mark one read (`{ "is_read": true }`) |
+| `POST /notifications/mark-all-read/` | Mark all read → `{ updated_count }` |
+
+### Shared widget
+
+`NotificationCard` (`lib/shared/components/notification_card.dart`) is generic for notifications, announcements, and future inbox channels. Reused on the dashboard, list, and details screens.
+
+### Navigation badge
+
+`notificationUnreadCountProvider` feeds `navigationBadgesProvider.alerts` so the Alerts tab badge updates when items are marked read.
+
+### Deep links
+
+`NotificationDeepLink` routes by `notification_type` + `metadata` into Loans, Contributions, Meetings, Chama details, or Home.
 
 ## Run
 

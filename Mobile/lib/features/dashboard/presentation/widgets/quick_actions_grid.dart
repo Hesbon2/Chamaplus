@@ -1,126 +1,105 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../../core/routing/route_paths.dart';
-import '../../../../core/theme/app_radius.dart';
 import '../../../../core/theme/app_spacing.dart';
+import '../../../../shared/navigation/navigation.dart';
 
-class QuickActionItem {
-  const QuickActionItem({
-    required this.label,
-    required this.icon,
-    required this.route,
-  });
-
-  final String label;
-  final IconData icon;
-  final String route;
-}
-
-class QuickActionsGrid extends StatelessWidget {
+/// Dashboard quick-actions grid powered by [RoleNavigationService].
+class QuickActionsGrid extends ConsumerWidget {
   const QuickActionsGrid({super.key});
 
-  static const _actions = [
-    QuickActionItem(
-      label: 'Chamas',
-      icon: Icons.groups_outlined,
-      route: RoutePaths.chamas,
-    ),
-    QuickActionItem(
-      label: 'Contributions',
-      icon: Icons.payments_outlined,
-      route: RoutePaths.contributions,
-    ),
-    QuickActionItem(
-      label: 'Loans',
-      icon: Icons.account_balance_wallet_outlined,
-      route: RoutePaths.loans,
-    ),
-    QuickActionItem(
-      label: 'Meetings',
-      icon: Icons.event_outlined,
-      route: RoutePaths.meetings,
-    ),
-    QuickActionItem(
-      label: 'Reports',
-      icon: Icons.assessment_outlined,
-      route: RoutePaths.reports,
-    ),
-    QuickActionItem(
-      label: 'Profile',
-      icon: Icons.person_outline,
-      route: RoutePaths.profile,
-    ),
-  ];
-
   @override
-  Widget build(BuildContext context) {
-    return GridView.builder(
-      shrinkWrap: true,
-      physics: const NeverScrollableScrollPhysics(),
-      itemCount: _actions.length,
-      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: 3,
-        mainAxisSpacing: AppSpacing.sm,
-        crossAxisSpacing: AppSpacing.sm,
-        childAspectRatio: 1.05,
+  Widget build(BuildContext context, WidgetRef ref) {
+    final shellCtx = ref.watch(shellNavigationContextProvider);
+    final roleActions = RoleNavigationService.quickActionsFor(
+      roleLabel: shellCtx.roleLabel,
+      chamaId: shellCtx.chamaId,
+    );
+
+    // Keep a compact browse grid for core destinations, then role actions.
+    const browse = <NavQuickAction>[
+      NavQuickAction(
+        id: 'browse_chamas',
+        label: 'Chamas',
+        icon: Icons.groups_outlined,
+        route: RoutePaths.chamas,
       ),
-      itemBuilder: (context, index) {
-        final action = _actions[index];
-        return _QuickActionTile(
-          action: action,
-          onTap: () {
-            if (action.route == RoutePaths.home) {
-              return;
-            }
-            context.push(action.route);
+      NavQuickAction(
+        id: 'browse_loans',
+        label: 'Loans',
+        icon: Icons.account_balance_wallet_outlined,
+        route: RoutePaths.loans,
+      ),
+      NavQuickAction(
+        id: 'browse_meetings',
+        label: 'Meetings',
+        icon: Icons.event_outlined,
+        route: RoutePaths.meetings,
+      ),
+      NavQuickAction(
+        id: 'browse_contributions',
+        label: 'Contribute',
+        icon: Icons.payments_outlined,
+        route: RoutePaths.contributions,
+      ),
+      NavQuickAction(
+        id: 'browse_alerts',
+        label: 'Alerts',
+        icon: Icons.notifications_outlined,
+        route: RoutePaths.alerts,
+      ),
+      NavQuickAction(
+        id: 'browse_more',
+        label: 'More',
+        icon: Icons.menu_outlined,
+        route: RoutePaths.more,
+      ),
+    ];
+
+    final seen = <String>{};
+    final actions = <NavQuickAction>[];
+    for (final action in [...browse, ...roleActions]) {
+      if (seen.add(action.id)) actions.add(action);
+    }
+    final display = actions.take(6).toList();
+
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final crossAxisCount = constraints.maxWidth > 600 ? 4 : 3;
+        return GridView.builder(
+          shrinkWrap: true,
+          physics: const NeverScrollableScrollPhysics(),
+          itemCount: display.length,
+          gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+            crossAxisCount: crossAxisCount,
+            mainAxisSpacing: AppSpacing.sm,
+            crossAxisSpacing: AppSpacing.sm,
+            childAspectRatio: 1.05,
+          ),
+          itemBuilder: (context, index) {
+            final action = display[index];
+            return QuickActionTile(
+              compact: true,
+              label: action.label,
+              icon: action.icon,
+              onTap: () {
+                final route = action.route;
+                if (route == RoutePaths.home) return;
+                if (route == RoutePaths.chamas ||
+                    route == RoutePaths.loans ||
+                    route == RoutePaths.alerts ||
+                    route == RoutePaths.more) {
+                  context.go(route);
+                  return;
+                }
+                context.push(route);
+              },
+            );
           },
         );
       },
-    );
-  }
-}
-
-class _QuickActionTile extends StatelessWidget {
-  const _QuickActionTile({
-    required this.action,
-    required this.onTap,
-  });
-
-  final QuickActionItem action;
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-
-    return Material(
-      color: theme.cardColor,
-      borderRadius: AppRadius.mdAll,
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: AppRadius.mdAll,
-        child: Container(
-          decoration: BoxDecoration(
-            borderRadius: AppRadius.mdAll,
-            border: Border.all(
-              color: theme.colorScheme.outline.withOpacity(0.2),
-            ),
-          ),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Icon(action.icon, color: theme.colorScheme.primary),
-              const SizedBox(height: AppSpacing.xs),
-              Text(
-                action.label,
-                style: theme.textTheme.labelMedium,
-                textAlign: TextAlign.center,
-              ),
-            ],
-          ),
-        ),
-      ),
     );
   }
 }

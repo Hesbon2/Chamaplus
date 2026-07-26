@@ -16,7 +16,13 @@ class RoutePaths {
   static const String contributions = '/contributions';
   static const String loans = '/loans';
   static const String meetings = '/meetings';
+  static const String alerts = '/alerts';
+  static const String alertsList = '/alerts/list';
+  static String alertDetails(String notificationId) =>
+      '/alerts/$notificationId';
+  static const String more = '/more';
   static const String reports = '/reports';
+  static const String settings = '/settings';
   static const String profile = '/profile';
   static const String editProfile = '/profile/edit';
 
@@ -87,6 +93,23 @@ class RoutePaths {
       '/chamas/$chamaId/loans/applications/$applicationId/active';
   static String loanHistory(String chamaId) =>
       '/chamas/$chamaId/loans/history';
+
+  // Meetings / Governance
+  static String chamaMeetings(String chamaId) => '/chamas/$chamaId/meetings';
+  static String meetingsList(String chamaId) =>
+      '/chamas/$chamaId/meetings/list';
+  static String upcomingMeetings(String chamaId) =>
+      '/chamas/$chamaId/meetings/upcoming';
+  static String scheduleMeeting(String chamaId) =>
+      '/chamas/$chamaId/meetings/schedule';
+  static String meetingDetails(String chamaId, String meetingId) =>
+      '/chamas/$chamaId/meetings/$meetingId';
+  static String meetingAttendance(String chamaId, String meetingId) =>
+      '/chamas/$chamaId/meetings/$meetingId/attendance';
+  static String meetingMinutes(String chamaId, String meetingId) =>
+      '/chamas/$chamaId/meetings/$meetingId/minutes';
+  static String meetingActionItems(String chamaId, String meetingId) =>
+      '/chamas/$chamaId/meetings/$meetingId/action-items';
 
   static const Set<String> publicRoutes = {
     splash,
