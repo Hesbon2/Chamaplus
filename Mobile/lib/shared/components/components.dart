@@ -20,4 +20,5 @@ export 'section_header.dart';
 export 'shimmer_loader.dart';
 export 'stat_card.dart';
 export 'status_chip.dart';
+export 'summary_metric_tile.dart';
 export 'timeline_card.dart';

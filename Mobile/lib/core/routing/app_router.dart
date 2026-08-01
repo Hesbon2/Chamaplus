@@ -52,6 +52,12 @@ import '../../features/onboarding/presentation/screens/pending_approval_screen.d
 import '../../features/onboarding/presentation/screens/welcome_screen.dart';
 import '../../features/profile/presentation/screens/edit_profile_screen.dart';
 import '../../features/profile/presentation/screens/profile_screen.dart';
+import '../../features/reports/presentation/screens/export_center_screen.dart';
+import '../../features/reports/presentation/screens/financial_report_screen.dart';
+import '../../features/reports/presentation/screens/member_statement_screen.dart';
+import '../../features/reports/presentation/screens/monthly_report_screen.dart';
+import '../../features/reports/presentation/screens/reports_home_screen.dart';
+import '../../features/reports/presentation/screens/reports_hub_screen.dart';
 import '../../shared/components/feature_placeholder_screen.dart';
 import '../../shared/navigation/navigation.dart';
 import 'route_paths.dart';
@@ -390,6 +396,44 @@ List<RouteBase> _chamaScopedRoutes() {
         ),
       ],
     ),
+    GoRoute(
+      path: 'reports',
+      name: 'chama-reports',
+      builder: (context, state) => ReportsHomeScreen(
+        chamaId: state.pathParameters['chamaId']!,
+      ),
+      routes: [
+        GoRoute(
+          path: 'monthly',
+          name: 'monthly-report',
+          builder: (context, state) => MonthlyReportScreen(
+            chamaId: state.pathParameters['chamaId']!,
+          ),
+        ),
+        GoRoute(
+          path: 'financial',
+          name: 'financial-report',
+          builder: (context, state) => FinancialReportScreen(
+            chamaId: state.pathParameters['chamaId']!,
+          ),
+        ),
+        GoRoute(
+          path: 'member-statement',
+          name: 'member-statement',
+          builder: (context, state) => MemberStatementScreen(
+            chamaId: state.pathParameters['chamaId']!,
+            memberId: state.uri.queryParameters['memberId'],
+          ),
+        ),
+        GoRoute(
+          path: 'export',
+          name: 'export-center',
+          builder: (context, state) => ExportCenterScreen(
+            chamaId: state.pathParameters['chamaId']!,
+          ),
+        ),
+      ],
+    ),
   ];
 }
 
@@ -559,7 +603,12 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         parentNavigatorKey: _rootNavigatorKey,
         builder: (context, state) => const MeetingsHubScreen(),
       ),
-      _placeholderRoute(RoutePaths.reports, 'Reports'),
+      GoRoute(
+        path: RoutePaths.reports,
+        name: 'reports-hub',
+        parentNavigatorKey: _rootNavigatorKey,
+        builder: (context, state) => const ReportsHubScreen(),
+      ),
       _placeholderRoute(RoutePaths.settings, 'Settings'),
     ],
   );

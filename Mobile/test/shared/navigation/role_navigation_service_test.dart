@@ -55,9 +55,13 @@ void main() {
     });
   });
 
-  test('moreMenuActions includes reports and settings stubs', () {
+  test('moreMenuActions includes reports and settings', () {
     final ids =
         RoleNavigationService.moreMenuActions().map((a) => a.id).toSet();
     expect(ids, containsAll(['meetings', 'reports', 'settings', 'profile']));
+    final reports = RoleNavigationService.moreMenuActions()
+        .firstWhere((a) => a.id == 'reports');
+    expect(reports.subtitle, isNot(contains('Coming soon')));
+    expect(reports.route, RoutePaths.reports);
   });
 }

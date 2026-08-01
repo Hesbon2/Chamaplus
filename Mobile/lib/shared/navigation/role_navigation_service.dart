@@ -211,7 +211,7 @@ class RoleNavigationService {
       NavQuickAction(
         id: 'reports',
         label: 'Reports',
-        subtitle: 'Coming soon',
+        subtitle: 'Analytics, statements & exports',
         icon: Icons.assessment_outlined,
         route: RoutePaths.reports,
       ),

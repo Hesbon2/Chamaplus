@@ -42,6 +42,14 @@ class ApiConstants {
       '/chamas/$chamaId/meetings/$meetingId/minutes/approve/';
   static String chamaMonthlyReport(String chamaId) =>
       '/chamas/$chamaId/reports/monthly/';
+  static String chamaLoansReport(String chamaId) =>
+      '/chamas/$chamaId/reports/loans/';
+  static String chamaRepaymentsReport(String chamaId) =>
+      '/chamas/$chamaId/reports/repayments/';
+  static String chamaFinancialReport(String chamaId) =>
+      '/chamas/$chamaId/reports/financial/';
+  static String chamaReportExport(String chamaId, String reportType) =>
+      '/chamas/$chamaId/reports/$reportType/export/';
   static String membershipStatus(String membershipId) =>
       '/memberships/$membershipId/status/';
   static const String notifications = '/notifications/';

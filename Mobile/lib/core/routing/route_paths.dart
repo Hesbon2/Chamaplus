@@ -96,6 +96,21 @@ class RoutePaths {
 
   // Meetings / Governance
   static String chamaMeetings(String chamaId) => '/chamas/$chamaId/meetings';
+  static String chamaReports(String chamaId) => '/chamas/$chamaId/reports';
+  static String monthlyReport(String chamaId) =>
+      '/chamas/$chamaId/reports/monthly';
+  static String financialReport(String chamaId) =>
+      '/chamas/$chamaId/reports/financial';
+  static String memberStatement(String chamaId, {String? memberId}) {
+    final uri = Uri(
+      path: '/chamas/$chamaId/reports/member-statement',
+      queryParameters: memberId == null ? null : {'memberId': memberId},
+    );
+    return uri.toString();
+  }
+
+  static String exportCenter(String chamaId) =>
+      '/chamas/$chamaId/reports/export';
   static String meetingsList(String chamaId) =>
       '/chamas/$chamaId/meetings/list';
   static String upcomingMeetings(String chamaId) =>

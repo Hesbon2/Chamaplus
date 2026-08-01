@@ -16,7 +16,7 @@ Shared frameworks:
 - Forms — `lib/shared/forms/`
 - API state — `lib/shared/api_state/` (`RefreshController`, `PaginationController`, `ApiStateBuilder`)
 - Charts — `lib/shared/charts/` (analytics chart kit)
-- Reports — `lib/shared/reports/` (export / share infrastructure; report screens not shipped yet)
+- Reports — `lib/shared/reports/` (PDF/CSV export & share) + feature screens in `lib/features/reports/`
 
 API base URL defaults to `http://127.0.0.1:8000/api/v1` (see `.env` / `EnvConfig`).
 
@@ -40,8 +40,8 @@ Persistent bottom navigation is implemented with GoRouter
 Full-screen destinations that cover the shell (root navigator):
 
 - `/profile`, `/profile/edit`
-- `/contributions`, `/meetings` (hubs)
-- `/reports`, `/settings` (placeholders — Reports paused; Settings ready to plug in)
+- `/contributions`, `/meetings`, `/reports` (hubs — pick a chama)
+- `/settings` (placeholder — ready to plug in)
 
 ### Shell building blocks
 
@@ -190,9 +190,49 @@ Relative to `/api/v1`:
 
 `NotificationDeepLink` routes by `notification_type` + `metadata` into Loans, Contributions, Meetings, Chama details, or Home.
 
+## Reports & Analytics module
+
+Path: `lib/features/reports/`
+
+### Routes
+
+| Route | Screen |
+|-------|--------|
+| `/reports` | Reports hub (pick chama) |
+| `/chamas/:id/reports` | Reports home (KPIs + chart suite) |
+| `/chamas/:id/reports/monthly` | Monthly report |
+| `/chamas/:id/reports/financial` | Financial report |
+| `/chamas/:id/reports/member-statement` | Member statement (`?memberId=` optional) |
+| `/chamas/:id/reports/export` | Export center (PDF / CSV / share / download) |
+
+### API mapping
+
+Relative to `/api/v1` and chama-scoped:
+
+| Client | Backend |
+|--------|---------|
+| `GET .../reports/monthly/?year&month` | Monthly aggregates |
+| `GET .../reports/contributions/` | Contribution totals |
+| `GET .../reports/loans/` | Loan portfolio KPIs |
+| `GET .../reports/repayments/` | Repayment totals |
+| `GET .../reports/financial/` | Combined financial overview |
+| `GET .../reports/members/{id}/financial/` | Member statement snapshot |
+
+Exports are generated on-device via shared `ReportExportService` (not the server export endpoint).
+
+### Shared pieces
+
+- `SummaryMetricTile` — generic KPI tile (title, value, trend, percentage, icon, footer)
+- Charts from `lib/shared/charts/` (no duplicated fl_chart code)
+- `ReportCard`, `ExportButton`, `runReportExportFlow` from `lib/shared/reports/`
+
+### Charts on Reports home
+
+Monthly contributions, loan outstanding, repayments, loan portfolio mix, meeting attendance, and optional personal credit score.
+
 ## Shared analytics infrastructure
 
-Infrastructure only — report screens are not shipped yet.
+Used by the Reports module and Dashboard.
 
 ### Charts — `lib/shared/charts/`
 
@@ -218,7 +258,7 @@ Dashboard monthly trends already use this kit (no duplicate fl_chart code in the
 
 | Piece | Role |
 |-------|------|
-| `ReportCard` | Future reports list tile |
+| `ReportCard` | Report library / export list tile |
 | `ExportButton` | CTA |
 | `ExportDialog` | PDF/CSV + share vs download |
 | `ExportProgressDialog` | Progress 0–1 |
@@ -227,7 +267,7 @@ Dashboard monthly trends already use this kit (no duplicate fl_chart code in the
 | `FileShareService` | Temp write, documents save, share sheet |
 | `runReportExportFlow` | Standard dialog → progress → success UX |
 
-Future report modules should build a `ReportExportRequest` and call `runReportExportFlow` / `ReportExportService` — do not fork export logic.
+Report screens build a `ReportExportRequest` and call `runReportExportFlow` / `ReportExportService` — do not fork export logic.
 
 ## Run
 
