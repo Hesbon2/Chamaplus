@@ -108,6 +108,75 @@ void main() {
       expect(find.textContaining('KES'), findsWidgets);
     });
 
+    testWidgets('AppAmountField accepts typed digits and decimals',
+        (tester) async {
+      final controller = TextEditingController();
+      addTearDown(controller.dispose);
+
+      await tester.pumpWidget(
+        _wrap(
+          AppForm(
+            child: AppAmountField(
+              controller: controller,
+              currencyCode: 'KES',
+            ),
+          ),
+        ),
+      );
+
+      await tester.enterText(find.byType(TextFormField), '1250.50');
+      await tester.pump();
+      expect(controller.text, '1250.50');
+      expect(find.text('1250.50'), findsOneWidget);
+    });
+
+    testWidgets('AppAmountField rejects excess decimal places', (tester) async {
+      final controller = TextEditingController();
+      addTearDown(controller.dispose);
+
+      await tester.pumpWidget(
+        _wrap(
+          AppForm(
+            child: AppAmountField(
+              controller: controller,
+              decimalPlaces: 2,
+            ),
+          ),
+        ),
+      );
+
+      await tester.enterText(find.byType(TextFormField), '10.999');
+      await tester.pump();
+      // Formatter keeps only a valid prefix / rejects invalid full value.
+      expect(controller.text.contains(RegExp(r'\.\d{3,}')), isFalse);
+    });
+
+    test('amountInputFormatters allow progressive amount typing', () {
+      final formatters = amountInputFormatters(decimalPlaces: 2);
+      var value = TextEditingValue.empty;
+      for (final char in '99.99'.split('')) {
+        value = formatters.single.formatEditUpdate(
+          value,
+          TextEditingValue(
+            text: '${value.text}$char',
+            selection: TextSelection.collapsed(
+              offset: value.text.length + 1,
+            ),
+          ),
+        );
+      }
+      expect(value.text, '99.99');
+    });
+
+    test('amountInputFormatters reject letters', () {
+      final formatters = amountInputFormatters();
+      final next = formatters.single.formatEditUpdate(
+        const TextEditingValue(text: '12'),
+        const TextEditingValue(text: '12a'),
+      );
+      expect(next.text, isNot('12a'));
+    });
+
     testWidgets('AppCurrencyField lists currencies', (tester) async {
       String? selected;
       await tester.pumpWidget(

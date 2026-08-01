@@ -13,7 +13,7 @@ Feature-first modules under `lib/features/`:
 Shared frameworks:
 
 - Design system — `lib/shared/components/`
-- Forms — `lib/shared/forms/`
+- Forms — `lib/shared/forms/` (`AppAmountField` uses `amountInputFormatters`; decimal bound must be interpolated — never put `$var` inside a raw `r'...'` RegExp)
 - API state — `lib/shared/api_state/` (`RefreshController`, `PaginationController`, `ApiStateBuilder`)
 - Charts — `lib/shared/charts/` (analytics chart kit)
 - Reports — `lib/shared/reports/` (PDF/CSV export & share) + feature screens in `lib/features/reports/`

@@ -37,9 +37,14 @@ InputDecoration appFormDecoration(
 const formFieldGap = SizedBox(height: AppSpacing.md);
 
 /// Common text formatters for numeric amounts.
+///
+/// Uses a properly interpolated decimal-places bound. A raw string must not
+/// contain `$decimalPlaces` — Dart will not interpolate inside `r'...'`, which
+/// previously produced an unmatchable pattern and blocked all typing.
 List<TextInputFormatter> amountInputFormatters({int decimalPlaces = 2}) {
-  final pattern = decimalPlaces <= 0
+  final places = decimalPlaces < 0 ? 0 : decimalPlaces;
+  final pattern = places <= 0
       ? RegExp(r'^\d*$')
-      : RegExp(r'^\d*\.?\d{0,$decimalPlaces}$');
+      : RegExp(r'^\d*\.?\d{0,' '$places' r'}$');
   return [FilteringTextInputFormatter.allow(pattern)];
 }
