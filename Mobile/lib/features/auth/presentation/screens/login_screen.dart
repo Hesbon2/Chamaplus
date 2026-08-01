@@ -5,8 +5,7 @@ import 'package:go_router/go_router.dart';
 import '../../../../core/routing/route_paths.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/widgets/app_snackbar.dart';
-import '../../../../core/widgets/app_text_field.dart';
-import '../../../../core/widgets/primary_button.dart';
+import '../../../../shared/forms/forms.dart';
 import '../../../onboarding/presentation/providers/onboarding_providers.dart';
 import '../controllers/login_controller.dart';
 import '../providers/auth_providers.dart';
@@ -25,7 +24,6 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   final _formKey = GlobalKey<FormState>();
   final _phoneController = TextEditingController();
   final _passwordController = TextEditingController();
-  bool _obscurePassword = true;
 
   @override
   void dispose() {
@@ -60,7 +58,9 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   @override
   Widget build(BuildContext context) {
     final loginState = ref.watch(loginControllerProvider);
-    final authState = ref.watch(authControllerProvider);
+    final authLoading = ref.watch(
+      authControllerProvider.select((s) => s.isLoading),
+    );
 
     ref.listen<LoginState>(loginControllerProvider, (previous, next) {
       if (next.errorMessage != null &&
@@ -69,44 +69,27 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
       }
     });
 
-    final isLoading = loginState.isLoading || authState.isLoading;
+    final isLoading = loginState.isLoading || authLoading;
 
     return AuthScaffold(
       title: 'Welcome back',
-      child: Form(
-        key: _formKey,
+      child: AppForm(
+        formKey: _formKey,
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            AppTextField(
+            AppPhoneField(
               controller: _phoneController,
               label: 'Phone number',
               hint: '0712345678',
-              keyboardType: TextInputType.phone,
-              textInputAction: TextInputAction.next,
-              prefixIcon: const Icon(Icons.phone_outlined),
               validator: PhoneValidator.validate,
               enabled: !isLoading,
             ),
             const SizedBox(height: AppSpacing.md),
-            AppTextField(
+            AppPasswordField(
               controller: _passwordController,
-              label: 'Password',
-              obscureText: _obscurePassword,
-              textInputAction: TextInputAction.done,
-              prefixIcon: const Icon(Icons.lock_outline),
-              suffixIcon: IconButton(
-                onPressed: () {
-                  setState(() => _obscurePassword = !_obscurePassword);
-                },
-                icon: Icon(
-                  _obscurePassword
-                      ? Icons.visibility_outlined
-                      : Icons.visibility_off_outlined,
-                ),
-              ),
-              validator: PasswordValidator.validate,
               enabled: !isLoading,
+              validator: PasswordValidator.validate,
               onChanged: (_) {
                 if (loginState.errorMessage != null) {
                   ref.read(loginControllerProvider.notifier).clearError();
@@ -117,16 +100,17 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
             Align(
               alignment: Alignment.centerRight,
               child: TextButton(
-                onPressed:
-                    isLoading ? null : () => context.push(RoutePaths.forgotPassword),
+                onPressed: isLoading
+                    ? null
+                    : () => context.push(RoutePaths.forgotPassword),
                 child: const Text('Forgot password?'),
               ),
             ),
             const SizedBox(height: AppSpacing.md),
-            PrimaryButton(
+            AppSubmitButton(
               label: 'Sign in',
               isLoading: isLoading,
-              onPressed: isLoading ? null : _submit,
+              onSubmit: isLoading ? null : _submit,
             ),
             const SizedBox(height: AppSpacing.sm),
             TextButton(

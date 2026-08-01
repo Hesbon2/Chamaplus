@@ -111,8 +111,20 @@ class ActionButton extends StatelessWidget {
         ),
     };
 
-    if (!expand) return button;
+    if (!expand) {
+      return Semantics(
+        button: true,
+        label: label,
+        enabled: !isLoading && onPressed != null,
+        child: button,
+      );
+    }
 
-    return SizedBox(width: double.infinity, child: button);
+    return Semantics(
+      button: true,
+      label: label,
+      enabled: !isLoading && onPressed != null,
+      child: SizedBox(width: double.infinity, child: button),
+    );
   }
 }

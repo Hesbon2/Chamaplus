@@ -1,13 +1,27 @@
 # ChamaPlus — Project Status & Architecture Inventory
 
-**Version:** 1.4  
-**Last updated:** July 12, 2026  
-**Scope:** Backend (`Backend/`)  
-**Aligned with:** `Docs/MASTER_PROJECT_SPEC.md`
+**Version:** 1.5  
+**Last updated:** August 1, 2026  
+**Scope:** Backend (`Backend/`) + Flutter client (`Mobile/`)  
+**Aligned with:** `Docs/MASTER_PROJECT_SPEC.md`, `Docs/ARCHITECTURE_AUDIT.md`
 
 ---
 
-## Executive summary
+## Mobile client (Flutter) — summary
+
+Feature-complete except **Settings** (placeholder) and **production hardening**.
+
+| Area | Status |
+|------|--------|
+| Auth / onboarding | ✅ Shared form framework (`AppPasswordField`, `AppPhoneField`) |
+| App shell + navigation | ✅ Deep-link pending restore after auth |
+| Chamas / contributions / loans / meetings / notifications / reports | ✅ |
+| Design system | ✅ Single stack under `shared/components` + `shared/forms` |
+| Architecture audit | ✅ See `Docs/ARCHITECTURE_AUDIT.md` (Aug 2026) |
+
+---
+
+## Backend executive summary
 
 ChamaPlus backend is a **Django 5.0 + DRF** REST API backed by **MySQL (XAMPP)**. Foundation, authentication, roles, Chama/membership management, contribution management, **financial core**, **decision support**, and **governance** (meetings, attendance, minutes) are **implemented and tested**.
 

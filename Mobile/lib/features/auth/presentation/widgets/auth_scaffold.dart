@@ -4,6 +4,7 @@ import '../../../../core/constants/app_constants.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_radius.dart';
 import '../../../../core/theme/app_spacing.dart';
+import '../../../../shared/components/app_card.dart';
 
 /// Shared layout for authentication screens with branded header.
 class AuthScaffold extends StatelessWidget {
@@ -39,6 +40,7 @@ class AuthScaffold extends StatelessWidget {
                         Align(
                           alignment: Alignment.centerLeft,
                           child: IconButton(
+                            tooltip: 'Back',
                             onPressed: () => Navigator.of(context).maybePop(),
                             icon: const Icon(Icons.arrow_back),
                           ),
@@ -54,20 +56,9 @@ class AuthScaffold extends StatelessWidget {
                         ),
                       ],
                       const SizedBox(height: AppSpacing.xl),
-                      Card(
-                        elevation: 0,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: AppRadius.lgAll,
-                          side: BorderSide(
-                            color: isDark
-                                ? AppColors.borderDark
-                                : AppColors.borderLight,
-                          ),
-                        ),
-                        child: Padding(
-                          padding: const EdgeInsets.all(AppSpacing.lg),
-                          child: child,
-                        ),
+                      AppCard(
+                        padding: const EdgeInsets.all(AppSpacing.lg),
+                        child: child,
                       ),
                       const Spacer(),
                       const SizedBox(height: AppSpacing.lg),
@@ -90,42 +81,46 @@ class _BrandHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      children: [
-        Container(
-          height: 72,
-          width: 72,
-          decoration: BoxDecoration(
-            gradient: LinearGradient(
-              colors: isDark
-                  ? [AppColors.primaryLight, AppColors.primary]
-                  : [AppColors.primary, AppColors.primaryDark],
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-            ),
-            borderRadius: AppRadius.lgAll,
-          ),
-          child: const Icon(
-            Icons.savings_outlined,
-            color: Colors.white,
-            size: 36,
-          ),
-        ),
-        const SizedBox(height: AppSpacing.md),
-        Text(
-          AppConstants.appName,
-          style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                fontWeight: FontWeight.w700,
-                color: isDark ? AppColors.primaryLight : AppColors.primary,
+    return Semantics(
+      header: true,
+      label: AppConstants.appName,
+      child: Column(
+        children: [
+          Container(
+            height: 72,
+            width: 72,
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                colors: isDark
+                    ? [AppColors.primaryLight, AppColors.primary]
+                    : [AppColors.primary, AppColors.primaryDark],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
               ),
-        ),
-        const SizedBox(height: AppSpacing.xs),
-        Text(
-          'Manage your chama with confidence',
-          style: Theme.of(context).textTheme.bodyMedium,
-          textAlign: TextAlign.center,
-        ),
-      ],
+              borderRadius: AppRadius.lgAll,
+            ),
+            child: const Icon(
+              Icons.savings_outlined,
+              color: Colors.white,
+              size: 36,
+            ),
+          ),
+          const SizedBox(height: AppSpacing.md),
+          Text(
+            AppConstants.appName,
+            style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                  fontWeight: FontWeight.w700,
+                  color: isDark ? AppColors.primaryLight : AppColors.primary,
+                ),
+          ),
+          const SizedBox(height: AppSpacing.xs),
+          Text(
+            'Manage your chama with confidence',
+            style: Theme.of(context).textTheme.bodyMedium,
+            textAlign: TextAlign.center,
+          ),
+        ],
+      ),
     );
   }
 }

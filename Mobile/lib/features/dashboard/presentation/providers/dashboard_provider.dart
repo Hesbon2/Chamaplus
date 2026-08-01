@@ -17,16 +17,24 @@ final dashboardRepositoryProvider = Provider<DashboardRepository>((ref) {
   return DashboardRepositoryImpl(api: ref.watch(dashboardApiProvider));
 });
 
+/// Watches only identity fields so unrelated auth updates do not rebuild/load.
 final dashboardProvider =
     StateNotifierProvider<DashboardController, ApiState<Dashboard>>((ref) {
-  final authState = ref.watch(authControllerProvider);
-  final controller = DashboardController(
-    repository: ref.watch(dashboardRepositoryProvider),
-    userId: authState.user?.id ?? '',
-    welcomeName: authState.user?.displayName ?? 'Member',
+  final userId = ref.watch(authControllerProvider.select((s) => s.user?.id));
+  final welcomeName = ref.watch(
+    authControllerProvider.select((s) => s.user?.displayName),
+  );
+  final isAuthenticated = ref.watch(
+    authControllerProvider.select((s) => s.isAuthenticated),
   );
 
-  if (authState.isAuthenticated) {
+  final controller = DashboardController(
+    repository: ref.watch(dashboardRepositoryProvider),
+    userId: userId ?? '',
+    welcomeName: welcomeName ?? 'Member',
+  );
+
+  if (isAuthenticated) {
     Future.microtask(controller.load);
   }
 

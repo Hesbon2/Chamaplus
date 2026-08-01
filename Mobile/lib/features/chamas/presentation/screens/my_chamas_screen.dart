@@ -8,6 +8,7 @@ import '../../../../core/routing/route_paths.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../shared/api_state.dart';
 import '../../../../shared/components/components.dart';
+import '../../../../shared/forms/forms.dart';
 import '../../domain/entities/chama.dart';
 import '../providers/chama_providers.dart';
 
@@ -72,13 +73,10 @@ class _MyChamasScreenState extends ConsumerState<MyChamasScreen> {
               AppSpacing.md,
               AppSpacing.sm,
             ),
-            child: TextField(
+            child: AppSearchField(
               controller: _searchController,
+              hint: 'Search chamas…',
               onChanged: _onSearchChanged,
-              decoration: const InputDecoration(
-                hintText: 'Search chamas…',
-                prefixIcon: Icon(Icons.search),
-              ),
             ),
           ),
           Expanded(

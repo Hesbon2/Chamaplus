@@ -1,8 +1,7 @@
+/// Core utility widgets that are not part of the shared design system.
+///
+/// Prefer `package:chamaplus_mobile/shared/components/components.dart` and
+/// `package:chamaplus_mobile/shared/forms/forms.dart` for UI primitives.
+library;
+
 export 'app_snackbar.dart';
-export 'app_text_field.dart';
-export 'confirmation_dialog.dart';
-export 'empty_state.dart';
-export 'error_state.dart';
-export 'loading_indicator.dart';
-export 'primary_button.dart';
-export 'secondary_button.dart';

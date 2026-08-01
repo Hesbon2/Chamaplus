@@ -35,6 +35,7 @@ class AppTextField extends StatelessWidget {
     this.maxLength,
     this.inputFormatters,
     this.autovalidateMode,
+    this.autofillHints,
   });
 
   final TextEditingController? controller;
@@ -62,6 +63,7 @@ class AppTextField extends StatelessWidget {
   final int? maxLength;
   final List<TextInputFormatter>? inputFormatters;
   final AutovalidateMode? autovalidateMode;
+  final Iterable<String>? autofillHints;
 
   @override
   Widget build(BuildContext context) {
@@ -83,6 +85,7 @@ class AppTextField extends StatelessWidget {
       maxLength: maxLength,
       inputFormatters: inputFormatters,
       autovalidateMode: autovalidateMode,
+      autofillHints: autofillHints,
       decoration: appFormDecoration(
         context,
         label: label,

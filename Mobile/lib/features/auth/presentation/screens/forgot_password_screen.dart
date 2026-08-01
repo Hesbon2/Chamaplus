@@ -3,8 +3,7 @@ import 'package:flutter/material.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/widgets/app_snackbar.dart';
-import '../../../../core/widgets/app_text_field.dart';
-import '../../../../core/widgets/primary_button.dart';
+import '../../../../shared/forms/forms.dart';
 import '../utils/validators.dart';
 import '../widgets/auth_scaffold.dart';
 
@@ -42,8 +41,8 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
     return AuthScaffold(
       showBackButton: true,
       title: 'Reset password',
-      child: Form(
-        key: _formKey,
+      child: AppForm(
+        formKey: _formKey,
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
@@ -55,7 +54,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
               ),
               child: Row(
                 children: [
-                  Icon(Icons.info_outline, color: AppColors.info),
+                  const Icon(Icons.info_outline, color: AppColors.info),
                   const SizedBox(width: AppSpacing.sm),
                   Expanded(
                     child: Text(
@@ -68,18 +67,15 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
               ),
             ),
             const SizedBox(height: AppSpacing.lg),
-            AppTextField(
+            AppPhoneField(
               controller: _phoneController,
-              label: 'Phone number',
-              hint: '0712345678',
-              keyboardType: TextInputType.phone,
-              prefixIcon: const Icon(Icons.phone_outlined),
               validator: PhoneValidator.validate,
             ),
             const SizedBox(height: AppSpacing.lg),
-            PrimaryButton(
+            AppSubmitButton(
               label: 'Request reset link',
-              onPressed: _submit,
+              formKey: _formKey,
+              onSubmit: _submit,
             ),
           ],
         ),

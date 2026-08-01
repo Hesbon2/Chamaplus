@@ -1,6 +1,5 @@
 import 'package:chamaplus_mobile/features/notifications/domain/entities/notification.dart';
 import 'package:chamaplus_mobile/features/notifications/domain/repositories/notification_repository.dart';
-import 'package:chamaplus_mobile/features/notifications/presentation/controllers/notification_controllers.dart';
 import 'package:chamaplus_mobile/features/notifications/presentation/providers/notification_providers.dart';
 import 'package:chamaplus_mobile/shared/api_state.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';

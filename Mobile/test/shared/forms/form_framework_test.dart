@@ -97,6 +97,25 @@ void main() {
       expect(find.text('Enter a valid Kenyan phone number'), findsOneWidget);
     });
 
+    testWidgets('AppPasswordField toggles visibility', (tester) async {
+      final controller = TextEditingController();
+      addTearDown(controller.dispose);
+
+      await tester.pumpWidget(
+        _wrap(
+          AppForm(
+            child: AppPasswordField(controller: controller),
+          ),
+        ),
+      );
+
+      await tester.enterText(find.byType(TextFormField), 'secret123');
+      expect(controller.text, 'secret123');
+      await tester.tap(find.byTooltip('Show password'));
+      await tester.pump();
+      expect(find.byTooltip('Hide password'), findsOneWidget);
+    });
+
     testWidgets('AppAmountField shows currency prefix', (tester) async {
       await tester.pumpWidget(
         _wrap(

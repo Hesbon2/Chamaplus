@@ -144,8 +144,18 @@ class _MeetingMinutesScreenState extends ConsumerState<MeetingMinutesScreen> {
     return Scaffold(
       appBar: AppBar(title: const Text('Meeting minutes')),
       body: state.isLoading
-          ? const Center(child: CircularProgressIndicator())
-          : SafeArea(
+          ? const ShimmerLoader(itemCount: 5)
+          : state.errorMessage != null && state.minutes == null && !_seeded
+              ? EmptyState(
+                  title: 'Could not load minutes',
+                  message: state.errorMessage!,
+                  icon: Icons.error_outline,
+                  actionLabel: 'Retry',
+                  onAction: () => ref
+                      .read(meetingMinutesControllerProvider(args).notifier)
+                      .load(),
+                )
+              : SafeArea(
               child: AppForm(
                 formKey: _formKey,
                 padding: const EdgeInsets.all(AppSpacing.md),
@@ -228,7 +238,11 @@ class _MeetingMinutesScreenState extends ConsumerState<MeetingMinutesScreen> {
                       const SizedBox(height: AppSpacing.md),
                     ],
                     if (_actionItems.isEmpty)
-                      const AppCard(child: Text('No action items yet.'))
+                      const EmptyState(
+                        title: 'No action items yet',
+                        message: 'Add tasks below to track follow-ups.',
+                        icon: Icons.checklist_outlined,
+                      )
                     else
                       ..._actionItems.map(
                         (item) => Padding(

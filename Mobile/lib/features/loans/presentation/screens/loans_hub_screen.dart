@@ -36,34 +36,11 @@ class LoansHubScreen extends ConsumerWidget {
                 const SizedBox(height: AppSpacing.sm),
             itemBuilder: (context, index) {
               final chama = chamas[index];
-              return AppCard(
+              return ChamaHubTile(
+                name: chama.name,
+                subtitle: 'Open loan dashboard',
+                icon: Icons.account_balance_wallet_outlined,
                 onTap: () => context.push(RoutePaths.chamaLoans(chama.id)),
-                child: Row(
-                  children: [
-                    AvatarBadge(
-                      initials:
-                          chama.name.isNotEmpty ? chama.name[0] : 'C',
-                      icon: Icons.account_balance_wallet_outlined,
-                    ),
-                    const SizedBox(width: AppSpacing.md),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            chama.name,
-                            style: Theme.of(context).textTheme.titleMedium,
-                          ),
-                          Text(
-                            'Open loan dashboard',
-                            style: Theme.of(context).textTheme.bodyMedium,
-                          ),
-                        ],
-                      ),
-                    ),
-                    const Icon(Icons.chevron_right),
-                  ],
-                ),
               );
             },
           );

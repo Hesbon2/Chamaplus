@@ -60,6 +60,7 @@ import '../../features/reports/presentation/screens/reports_home_screen.dart';
 import '../../features/reports/presentation/screens/reports_hub_screen.dart';
 import '../../shared/components/feature_placeholder_screen.dart';
 import '../../shared/navigation/navigation.dart';
+import 'pending_deep_link.dart';
 import 'route_paths.dart';
 
 final _rootNavigatorKey = GlobalKey<NavigatorState>(debugLabel: 'root');
@@ -91,34 +92,56 @@ class RouterNotifier extends ChangeNotifier {
     final authState = _ref.read(authControllerProvider);
     final gate = _ref.read(onboardingGateProvider);
     final location = state.matchedLocation;
+    final fullUri = state.uri.toString();
     final isPublicRoute = RoutePaths.publicRoutes.contains(location);
+
+    void capturePending() {
+      if (!isEphemeralAuthLocation(location) &&
+          location != RoutePaths.welcome &&
+          location != RoutePaths.pendingApproval) {
+        _ref.read(pendingDeepLinkProvider.notifier).state = fullUri;
+      }
+    }
+
+    String? consumePending() {
+      final pending = _ref.read(pendingDeepLinkProvider);
+      if (pending == null || pending.isEmpty) return null;
+      _ref.read(pendingDeepLinkProvider.notifier).state = null;
+      return pending;
+    }
 
     if (authState.status == AuthStatus.initial ||
         authState.status == AuthStatus.loading) {
-      return location == RoutePaths.splash ? null : RoutePaths.splash;
+      if (location == RoutePaths.splash) return null;
+      capturePending();
+      return RoutePaths.splash;
     }
 
     if (authState.isAuthenticated) {
       if (gate == OnboardingGate.unknown) {
-        return location == RoutePaths.splash ? null : RoutePaths.splash;
+        if (location == RoutePaths.splash) return null;
+        capturePending();
+        return RoutePaths.splash;
       }
 
       if (isPublicRoute) {
-        return gate == OnboardingGate.needsOnboarding
-            ? RoutePaths.welcome
-            : RoutePaths.home;
+        if (gate == OnboardingGate.needsOnboarding) {
+          return RoutePaths.welcome;
+        }
+        return consumePending() ?? RoutePaths.home;
       }
 
       if (gate == OnboardingGate.needsOnboarding) {
         if (RoutePaths.onboardingRoutes.contains(location)) {
           return null;
         }
+        capturePending();
         return RoutePaths.welcome;
       }
 
       if (location == RoutePaths.welcome ||
           location == RoutePaths.pendingApproval) {
-        return RoutePaths.home;
+        return consumePending() ?? RoutePaths.home;
       }
 
       return null;
@@ -130,6 +153,7 @@ class RouterNotifier extends ChangeNotifier {
       return null;
     }
 
+    capturePending();
     return RoutePaths.login;
   }
 }

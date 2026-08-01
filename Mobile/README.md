@@ -12,11 +12,11 @@ Feature-first modules under `lib/features/`:
 
 Shared frameworks:
 
-- Design system — `lib/shared/components/`
-- Forms — `lib/shared/forms/` (`AppAmountField` uses `amountInputFormatters`; decimal bound must be interpolated — never put `$var` inside a raw `r'...'` RegExp)
-- API state — `lib/shared/api_state/` (`RefreshController`, `PaginationController`, `ApiStateBuilder`)
-- Charts — `lib/shared/charts/` (analytics chart kit)
-- Reports — `lib/shared/reports/` (PDF/CSV export & share) + feature screens in `lib/features/reports/`
+- Design system — `lib/shared/components/` (including `SummaryMetricTile`, `ChamaHubTile`)
+- Forms — `lib/shared/forms/` (`AppAmountField`, `AppPasswordField`, …; decimal formatters must interpolate — never `$var` inside raw `r'...'`)
+- API state — `lib/shared/api_state/`
+- Charts — `lib/shared/charts/`
+- Reports — `lib/shared/reports/` + feature screens in `lib/features/reports/`
 
 API base URL defaults to `http://127.0.0.1:8000/api/v1` (see `.env` / `EnvConfig`).
 
@@ -277,3 +277,5 @@ flutter run
 flutter test
 dart analyze
 ```
+
+Architecture audit notes: see repo root [`Docs/ARCHITECTURE_AUDIT.md`](../Docs/ARCHITECTURE_AUDIT.md).

@@ -27,8 +27,6 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   final _confirmController = TextEditingController();
-  bool _obscurePassword = true;
-  bool _obscureConfirm = true;
 
   @override
   void dispose() {
@@ -119,44 +117,17 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
               enabled: !isLoading,
             ),
             const SizedBox(height: AppSpacing.md),
-            AppTextField(
+            AppPasswordField(
               controller: _passwordController,
-              label: 'Password',
-              obscureText: _obscurePassword,
               textInputAction: TextInputAction.next,
-              prefixIcon: const Icon(Icons.lock_outline),
-              suffixIcon: IconButton(
-                onPressed: () =>
-                    setState(() => _obscurePassword = !_obscurePassword),
-                icon: Icon(
-                  _obscurePassword
-                      ? Icons.visibility_outlined
-                      : Icons.visibility_off_outlined,
-                ),
-              ),
-              validator: (v) => AppValidators.minLength(
-                v,
-                length: 8,
-                field: 'Password',
-              ),
               enabled: !isLoading,
             ),
             const SizedBox(height: AppSpacing.md),
-            AppTextField(
+            AppPasswordField(
               controller: _confirmController,
               label: 'Confirm password',
-              obscureText: _obscureConfirm,
-              textInputAction: TextInputAction.done,
-              prefixIcon: const Icon(Icons.lock_outline),
-              suffixIcon: IconButton(
-                onPressed: () =>
-                    setState(() => _obscureConfirm = !_obscureConfirm),
-                icon: Icon(
-                  _obscureConfirm
-                      ? Icons.visibility_outlined
-                      : Icons.visibility_off_outlined,
-                ),
-              ),
+              autofillHints: const [AutofillHints.newPassword],
+              enabled: !isLoading,
               validator: (v) {
                 if (v != _passwordController.text) {
                   return 'Passwords do not match';
@@ -167,7 +138,6 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                   field: 'Confirm password',
                 );
               },
-              enabled: !isLoading,
             ),
             const SizedBox(height: AppSpacing.lg),
             AppSubmitButton(

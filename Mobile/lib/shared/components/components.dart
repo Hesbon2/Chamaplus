@@ -9,6 +9,7 @@ library;
 export 'action_button.dart';
 export 'app_card.dart';
 export 'avatar_badge.dart';
+export 'chama_hub_tile.dart';
 export 'confirmation_dialog.dart';
 export 'empty_action_card.dart';
 export 'empty_state.dart';

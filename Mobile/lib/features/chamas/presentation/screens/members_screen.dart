@@ -8,6 +8,7 @@ import '../../../../core/routing/route_paths.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../shared/api_state.dart';
 import '../../../../shared/components/components.dart';
+import '../../../../shared/forms/forms.dart';
 import '../../domain/entities/chama.dart';
 import '../providers/chama_providers.dart';
 import '../utils/chama_ui_mapper.dart';
@@ -69,13 +70,10 @@ class _MembersScreenState extends ConsumerState<MembersScreen> {
         children: [
           Padding(
             padding: const EdgeInsets.all(AppSpacing.md),
-            child: TextField(
+            child: AppSearchField(
               controller: _searchController,
+              hint: 'Search by name or phone…',
               onChanged: _onSearchChanged,
-              decoration: const InputDecoration(
-                hintText: 'Search by name or phone…',
-                prefixIcon: Icon(Icons.search),
-              ),
             ),
           ),
           Padding(

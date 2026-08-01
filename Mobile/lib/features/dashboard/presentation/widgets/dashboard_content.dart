@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 
 import '../../../../core/theme/app_spacing.dart';
+import '../../../../shared/components/components.dart';
 import '../../domain/entities/dashboard.dart';
 import '../utils/dashboard_formatters.dart';
-import 'dashboard_stat_card.dart';
 import 'monthly_charts_section.dart';
 import 'quick_actions_grid.dart';
 import 'recent_activities_list.dart';
@@ -39,7 +39,7 @@ class DashboardContent extends StatelessWidget {
             builder: (context, constraints) {
               final isWide = constraints.maxWidth > 600;
               final statCards = [
-                DashboardStatCard(
+                SummaryMetricTile(
                   title: 'Contributions',
                   value: DashboardFormatters.currency(
                     dashboard.contributionSummary.paidByUser,
@@ -49,7 +49,7 @@ class DashboardContent extends StatelessWidget {
                       'Your total paid',
                   icon: Icons.savings_outlined,
                 ),
-                DashboardStatCard(
+                SummaryMetricTile(
                   title: 'Outstanding Loans',
                   value: DashboardFormatters.currency(
                     dashboard.loanSummary.outstandingBalance,
@@ -60,14 +60,14 @@ class DashboardContent extends StatelessWidget {
                   icon: Icons.account_balance_outlined,
                   accentColor: theme.colorScheme.secondary,
                 ),
-                DashboardStatCard(
+                SummaryMetricTile(
                   title: 'Credit Score',
                   value: DashboardFormatters.creditScore(dashboard.creditScore),
                   subtitle: 'Chama performance rating',
                   icon: Icons.verified_outlined,
                   accentColor: theme.colorScheme.tertiary,
                 ),
-                DashboardStatCard(
+                SummaryMetricTile(
                   title: 'Notifications',
                   value: '${dashboard.unreadNotifications}',
                   subtitle: 'Unread messages',

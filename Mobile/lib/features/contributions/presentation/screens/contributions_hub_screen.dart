@@ -36,36 +36,12 @@ class ContributionsHubScreen extends ConsumerWidget {
                 const SizedBox(height: AppSpacing.sm),
             itemBuilder: (context, index) {
               final chama = chamas[index];
-              return AppCard(
-                onTap: () => context.push(
-                  RoutePaths.chamaContributions(chama.id),
-                ),
-                child: Row(
-                  children: [
-                    AvatarBadge(
-                      initials:
-                          chama.name.isNotEmpty ? chama.name[0] : 'C',
-                      icon: Icons.savings_outlined,
-                    ),
-                    const SizedBox(width: AppSpacing.md),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            chama.name,
-                            style: Theme.of(context).textTheme.titleMedium,
-                          ),
-                          Text(
-                            'Open contribution dashboard',
-                            style: Theme.of(context).textTheme.bodyMedium,
-                          ),
-                        ],
-                      ),
-                    ),
-                    const Icon(Icons.chevron_right),
-                  ],
-                ),
+              return ChamaHubTile(
+                name: chama.name,
+                subtitle: 'Open contribution dashboard',
+                icon: Icons.savings_outlined,
+                onTap: () =>
+                    context.push(RoutePaths.chamaContributions(chama.id)),
               );
             },
           );

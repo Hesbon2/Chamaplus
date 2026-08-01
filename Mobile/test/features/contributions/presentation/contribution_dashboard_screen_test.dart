@@ -135,6 +135,11 @@ void main() {
     expect(find.text('Contributions'), findsWidgets);
     expect(find.textContaining('15000'), findsOneWidget);
     expect(find.text('July Cycle'), findsOneWidget);
+    await tester.scrollUntilVisible(
+      find.text('CASH-001'),
+      200,
+      scrollable: find.byType(Scrollable).first,
+    );
     expect(find.text('CASH-001'), findsOneWidget);
   });
 }

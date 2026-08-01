@@ -12,6 +12,7 @@ export 'app_date_picker.dart';
 export 'app_dropdown.dart';
 export 'app_form.dart';
 export 'app_multiline_field.dart';
+export 'app_password_field.dart';
 export 'app_phone_field.dart';
 export 'app_search_field.dart';
 export 'app_submit_button.dart';

@@ -36,34 +36,11 @@ class MeetingsHubScreen extends ConsumerWidget {
                 const SizedBox(height: AppSpacing.sm),
             itemBuilder: (context, index) {
               final chama = chamas[index];
-              return AppCard(
+              return ChamaHubTile(
+                name: chama.name,
+                subtitle: 'Open governance dashboard',
+                icon: Icons.groups_outlined,
                 onTap: () => context.push(RoutePaths.chamaMeetings(chama.id)),
-                child: Row(
-                  children: [
-                    AvatarBadge(
-                      initials:
-                          chama.name.isNotEmpty ? chama.name[0] : 'C',
-                      icon: Icons.groups_outlined,
-                    ),
-                    const SizedBox(width: AppSpacing.md),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            chama.name,
-                            style: Theme.of(context).textTheme.titleMedium,
-                          ),
-                          Text(
-                            'Open governance dashboard',
-                            style: Theme.of(context).textTheme.bodyMedium,
-                          ),
-                        ],
-                      ),
-                    ),
-                    const Icon(Icons.chevron_right),
-                  ],
-                ),
               );
             },
           );
