@@ -15,6 +15,8 @@ Shared frameworks:
 - Design system — `lib/shared/components/`
 - Forms — `lib/shared/forms/`
 - API state — `lib/shared/api_state/` (`RefreshController`, `PaginationController`, `ApiStateBuilder`)
+- Charts — `lib/shared/charts/` (analytics chart kit)
+- Reports — `lib/shared/reports/` (export / share infrastructure; report screens not shipped yet)
 
 API base URL defaults to `http://127.0.0.1:8000/api/v1` (see `.env` / `EnvConfig`).
 
@@ -187,6 +189,45 @@ Relative to `/api/v1`:
 ### Deep links
 
 `NotificationDeepLink` routes by `notification_type` + `metadata` into Loans, Contributions, Meetings, Chama details, or Home.
+
+## Shared analytics infrastructure
+
+Infrastructure only — report screens are not shipped yet.
+
+### Charts — `lib/shared/charts/`
+
+| Widget | Role |
+|--------|------|
+| `ChartCard` | Title, legend, loading, empty, responsive body |
+| `ChartHeader` / `ChartLegend` | Titles and series keys |
+| `ChartLoading` / `ChartEmptyState` | Async placeholders |
+| `AppLineChart` | Multi/single series lines |
+| `AppBarChart` | Category bars |
+| `AppPieChart` | Donut / pie with touch badges |
+| `AppAreaChart` | Filled trend area |
+
+Import:
+
+```dart
+import 'package:chamaplus_mobile/shared/charts/charts.dart';
+```
+
+Dashboard monthly trends already use this kit (no duplicate fl_chart code in the feature).
+
+### Reports / export — `lib/shared/reports/`
+
+| Piece | Role |
+|-------|------|
+| `ReportCard` | Future reports list tile |
+| `ExportButton` | CTA |
+| `ExportDialog` | PDF/CSV + share vs download |
+| `ExportProgressDialog` | Progress 0–1 |
+| `ExportSuccessDialog` | Success path |
+| `ReportExportService` | Generate PDF/CSV + progress + errors |
+| `FileShareService` | Temp write, documents save, share sheet |
+| `runReportExportFlow` | Standard dialog → progress → success UX |
+
+Future report modules should build a `ReportExportRequest` and call `runReportExportFlow` / `ReportExportService` — do not fork export logic.
 
 ## Run
 

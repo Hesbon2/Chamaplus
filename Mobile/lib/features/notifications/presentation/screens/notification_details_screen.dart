@@ -41,8 +41,11 @@ class NotificationDetailsScreen extends ConsumerWidget {
       notificationDetailsControllerProvider(notificationId),
       (prev, next) {
         final data = next.data;
-        if (data != null && !data.isRead) {
-          // Auto-mark when opened.
+        final justLoaded = next.isSuccess &&
+            data != null &&
+            !data.isRead &&
+            (prev == null || !prev.isSuccess || prev.data?.isRead == true);
+        if (justLoaded) {
           Future.microtask(() => _ensureRead(ref, data));
         }
       },

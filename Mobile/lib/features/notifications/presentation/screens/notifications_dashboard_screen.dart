@@ -7,6 +7,7 @@ import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/widgets/app_snackbar.dart';
 import '../../../../shared/api_state.dart';
 import '../../../../shared/components/components.dart';
+import '../../../dashboard/presentation/providers/dashboard_provider.dart';
 import '../../domain/entities/notification.dart';
 import '../providers/notification_providers.dart';
 import '../utils/notification_ui_mapper.dart';
@@ -20,6 +21,10 @@ class NotificationsDashboardScreen extends ConsumerWidget {
         .read(notificationsDashboardProvider.notifier)
         .markAllRead();
     ref.read(notificationUnreadCountProvider.notifier).setCount(0);
+    // Keep home dashboard unread badge/stats in sync when possible.
+    try {
+      await ref.read(dashboardProvider.notifier).refresh();
+    } catch (_) {}
     if (!context.mounted) return;
     if (ok) {
       AppSnackbar.success(context, 'All notifications marked as read');
