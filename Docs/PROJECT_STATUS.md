@@ -1,6 +1,6 @@
 # ChamaPlus — Project Status & Architecture Inventory
 
-**Version:** 1.5  
+**Version:** 1.6  
 **Last updated:** August 1, 2026  
 **Scope:** Backend (`Backend/`) + Flutter client (`Mobile/`)  
 **Aligned with:** `Docs/MASTER_PROJECT_SPEC.md`, `Docs/ARCHITECTURE_AUDIT.md`
@@ -9,13 +9,14 @@
 
 ## Mobile client (Flutter) — summary
 
-Feature-complete except **Settings** (placeholder) and **production hardening**.
+Feature-complete except **production hardening**.
 
 | Area | Status |
 |------|--------|
 | Auth / onboarding | ✅ Shared form framework (`AppPasswordField`, `AppPhoneField`) |
 | App shell + navigation | ✅ Deep-link pending restore after auth |
 | Chamas / contributions / loans / meetings / notifications / reports | ✅ |
+| Settings & profile | ✅ Theme persistence, security, prefs, help, about; diagnostics debug-only |
 | Design system | ✅ Single stack under `shared/components` + `shared/forms` |
 | Architecture audit | ✅ See `Docs/ARCHITECTURE_AUDIT.md` (Aug 2026) |
 

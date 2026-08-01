@@ -70,6 +70,13 @@ class FakeAuthRepository implements AuthRepository {
       lastLogin: base.lastLogin,
     );
   }
+
+  @override
+  Future<void> changePassword({
+    required String currentPassword,
+    required String newPassword,
+    required String newPasswordConfirm,
+  }) async {}
 }
 
 /// Sample user for tests.

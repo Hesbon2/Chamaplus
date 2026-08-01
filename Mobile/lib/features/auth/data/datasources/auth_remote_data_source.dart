@@ -15,4 +15,10 @@ abstract class AuthRemoteDataSource {
   Future<UserDto> updateProfile(ProfileUpdateDto request);
 
   Future<void> logout(String refreshToken);
+
+  Future<void> changePassword({
+    required String currentPassword,
+    required String newPassword,
+    required String newPasswordConfirm,
+  });
 }

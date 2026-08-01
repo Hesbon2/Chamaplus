@@ -7,9 +7,8 @@ import '../../../../core/routing/route_paths.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/theme_provider.dart';
 import '../../../../shared/api_state.dart';
+import '../../../../shared/auth/session_cleanup.dart';
 import '../../../../shared/components/components.dart';
-import '../../../auth/presentation/providers/auth_providers.dart';
-import '../../../onboarding/presentation/providers/onboarding_providers.dart';
 import '../../domain/entities/dashboard.dart';
 import '../providers/dashboard_provider.dart';
 import '../widgets/dashboard_content.dart';
@@ -35,8 +34,8 @@ class DashboardScreen extends ConsumerWidget {
             icon: const Icon(Icons.person_outline),
           ),
           IconButton(
-            tooltip: 'Toggle theme',
-            onPressed: () => ref.read(themeModeProvider.notifier).toggle(),
+            tooltip: 'Appearance',
+            onPressed: () => context.push(RoutePaths.settingsAppearance),
             icon: Icon(
               themeMode == ThemeMode.dark
                   ? Icons.light_mode_outlined
@@ -45,11 +44,7 @@ class DashboardScreen extends ConsumerWidget {
           ),
           IconButton(
             tooltip: 'Sign out',
-            onPressed: () {
-              ref.read(authControllerProvider.notifier).logout();
-              ref.read(onboardingGateProvider.notifier).state =
-                  OnboardingGate.unknown;
-            },
+            onPressed: () => performSecureLogout(ref),
             icon: const Icon(Icons.logout),
           ),
         ],

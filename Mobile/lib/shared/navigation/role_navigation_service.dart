@@ -218,7 +218,7 @@ class RoleNavigationService {
       NavQuickAction(
         id: 'settings',
         label: 'Settings',
-        subtitle: 'App preferences',
+        subtitle: 'Profile, security & preferences',
         icon: Icons.settings_outlined,
         route: RoutePaths.settings,
       ),

@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -58,7 +59,13 @@ import '../../features/reports/presentation/screens/member_statement_screen.dart
 import '../../features/reports/presentation/screens/monthly_report_screen.dart';
 import '../../features/reports/presentation/screens/reports_home_screen.dart';
 import '../../features/reports/presentation/screens/reports_hub_screen.dart';
-import '../../shared/components/feature_placeholder_screen.dart';
+import '../../features/settings/presentation/screens/about_screen.dart';
+import '../../features/settings/presentation/screens/appearance_settings_screen.dart';
+import '../../features/settings/presentation/screens/diagnostics_screen.dart';
+import '../../features/settings/presentation/screens/help_support_screen.dart';
+import '../../features/settings/presentation/screens/notification_preferences_screen.dart';
+import '../../features/settings/presentation/screens/security_settings_screen.dart';
+import '../../features/settings/presentation/screens/settings_home_screen.dart';
 import '../../shared/navigation/navigation.dart';
 import 'pending_deep_link.dart';
 import 'route_paths.dart';
@@ -163,15 +170,6 @@ final routerNotifierProvider = Provider<RouterNotifier>((ref) {
   ref.onDispose(notifier.dispose);
   return notifier;
 });
-
-GoRoute _placeholderRoute(String path, String title) {
-  return GoRoute(
-    path: path,
-    name: path.replaceAll('/', ''),
-    parentNavigatorKey: _rootNavigatorKey,
-    builder: (context, state) => FeaturePlaceholderScreen(title: title),
-  );
-}
 
 /// Chama-scoped feature routes nested under `/chamas/:chamaId`.
 List<RouteBase> _chamaScopedRoutes() {
@@ -633,7 +631,51 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         parentNavigatorKey: _rootNavigatorKey,
         builder: (context, state) => const ReportsHubScreen(),
       ),
-      _placeholderRoute(RoutePaths.settings, 'Settings'),
+      GoRoute(
+        path: RoutePaths.settings,
+        name: 'settings',
+        parentNavigatorKey: _rootNavigatorKey,
+        builder: (context, state) => const SettingsHomeScreen(),
+        routes: [
+          GoRoute(
+            path: 'appearance',
+            name: 'settings-appearance',
+            parentNavigatorKey: _rootNavigatorKey,
+            builder: (context, state) => const AppearanceSettingsScreen(),
+          ),
+          GoRoute(
+            path: 'security',
+            name: 'settings-security',
+            parentNavigatorKey: _rootNavigatorKey,
+            builder: (context, state) => const SecuritySettingsScreen(),
+          ),
+          GoRoute(
+            path: 'notifications',
+            name: 'settings-notifications',
+            parentNavigatorKey: _rootNavigatorKey,
+            builder: (context, state) => const NotificationPreferencesScreen(),
+          ),
+          GoRoute(
+            path: 'help',
+            name: 'settings-help',
+            parentNavigatorKey: _rootNavigatorKey,
+            builder: (context, state) => const HelpSupportScreen(),
+          ),
+          GoRoute(
+            path: 'about',
+            name: 'settings-about',
+            parentNavigatorKey: _rootNavigatorKey,
+            builder: (context, state) => const AboutScreen(),
+          ),
+          if (kDebugMode)
+            GoRoute(
+              path: 'diagnostics',
+              name: 'settings-diagnostics',
+              parentNavigatorKey: _rootNavigatorKey,
+              builder: (context, state) => const DiagnosticsScreen(),
+            ),
+        ],
+      ),
     ],
   );
 });

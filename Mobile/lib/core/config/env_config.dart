@@ -8,12 +8,27 @@ class EnvConfig {
     await dotenv.load(fileName: '.env');
   }
 
-  static String get apiBaseUrl =>
-      dotenv.env['API_BASE_URL'] ?? 'http://127.0.0.1:8000/api/v1';
+  static String get apiBaseUrl {
+    try {
+      return dotenv.env['API_BASE_URL'] ?? 'http://127.0.0.1:8000/api/v1';
+    } catch (_) {
+      return 'http://127.0.0.1:8000/api/v1';
+    }
+  }
 
-  static int get connectTimeoutMs =>
-      int.tryParse(dotenv.env['API_CONNECT_TIMEOUT_MS'] ?? '') ?? 15000;
+  static int get connectTimeoutMs {
+    try {
+      return int.tryParse(dotenv.env['API_CONNECT_TIMEOUT_MS'] ?? '') ?? 15000;
+    } catch (_) {
+      return 15000;
+    }
+  }
 
-  static int get receiveTimeoutMs =>
-      int.tryParse(dotenv.env['API_RECEIVE_TIMEOUT_MS'] ?? '') ?? 15000;
+  static int get receiveTimeoutMs {
+    try {
+      return int.tryParse(dotenv.env['API_RECEIVE_TIMEOUT_MS'] ?? '') ?? 15000;
+    } catch (_) {
+      return 15000;
+    }
+  }
 }

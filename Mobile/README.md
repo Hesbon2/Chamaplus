@@ -39,9 +39,9 @@ Persistent bottom navigation is implemented with GoRouter
 
 Full-screen destinations that cover the shell (root navigator):
 
-- `/profile`, `/profile/edit`
 - `/contributions`, `/meetings`, `/reports` (hubs — pick a chama)
-- `/settings` (placeholder — ready to plug in)
+- `/settings` (+ appearance, security, notifications, help, about; diagnostics in debug only)
+- `/profile`, `/profile/edit`
 
 ### Shell building blocks
 
@@ -268,6 +268,37 @@ Dashboard monthly trends already use this kit (no duplicate fl_chart code in the
 | `runReportExportFlow` | Standard dialog → progress → success UX |
 
 Report screens build a `ReportExportRequest` and call `runReportExportFlow` / `ReportExportService` — do not fork export logic.
+
+## Settings & Profile module
+
+Path: `lib/features/settings/` (+ profile screens under `lib/features/profile/`)
+
+### Routes
+
+| Route | Screen |
+|-------|--------|
+| `/settings` | Settings home |
+| `/settings/appearance` | Theme: System / Light / Dark (persisted) |
+| `/settings/security` | Change password |
+| `/settings/notifications` | Local notification preference toggles |
+| `/settings/help` | Help & support |
+| `/settings/about` | Version & about |
+| `/settings/diagnostics` | **Debug only** (`kDebugMode`) — never in release |
+| `/profile` | Profile overview |
+| `/profile/edit` | Edit profile |
+
+### Shared widgets
+
+- `SettingsTile`, `ProfileHeader`, `ThemeSelector` in `lib/shared/components/`
+
+### Persistence
+
+- Theme + notification prefs: `PreferencesStorage` (`shared_preferences`)
+- Tokens: `SecureStorageService` (cleared on logout)
+
+### Logout
+
+`performSecureLogout` clears tokens, dashboard cache, onboarding gate, pending deep link, and invalidates key providers.
 
 ## Run
 

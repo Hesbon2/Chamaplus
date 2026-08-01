@@ -70,6 +70,29 @@ class AuthApi implements AuthRemoteDataSource {
     );
   }
 
+  @override
+  Future<void> changePassword({
+    required String currentPassword,
+    required String newPassword,
+    required String newPasswordConfirm,
+  }) async {
+    final response = await _apiClient.post<Map<String, dynamic>>(
+      ApiConstants.authChangePassword,
+      data: {
+        'current_password': currentPassword,
+        'new_password': newPassword,
+        'new_password_confirm': newPasswordConfirm,
+      },
+    );
+    final envelope = ApiResponse<Map<String, dynamic>>.fromJson(
+      response.data ?? {},
+      (data) => Map<String, dynamic>.from(data as Map? ?? {}),
+    );
+    if (!envelope.success) {
+      throw ServerException(message: envelope.message);
+    }
+  }
+
   TokenResponseDto _parseTokenResponse(Map<String, dynamic>? json) {
     final envelope = ApiResponse<Map<String, dynamic>>.fromJson(
       json ?? {},

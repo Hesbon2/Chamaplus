@@ -34,4 +34,11 @@ abstract class AuthRepository {
     String? lastName,
     String? email,
   });
+
+  /// Change password for the authenticated user.
+  Future<void> changePassword({
+    required String currentPassword,
+    required String newPassword,
+    required String newPasswordConfirm,
+  });
 }

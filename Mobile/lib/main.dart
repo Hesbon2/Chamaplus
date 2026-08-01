@@ -3,6 +3,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'app.dart';
 import 'core/config/env_config.dart';
+import 'core/theme/theme_provider.dart';
+import 'core/storage/preferences_storage.dart';
 import 'core/utils/logger.dart';
 
 Future<void> main() async {
@@ -15,9 +17,14 @@ Future<void> main() async {
     AppLogger.error('Failed to load .env', error, stackTrace);
   }
 
+  final preferences = await PreferencesStorage.create();
+
   runApp(
-    const ProviderScope(
-      child: ChamaplusApp(),
+    ProviderScope(
+      overrides: [
+        preferencesStorageProvider.overrideWithValue(preferences),
+      ],
+      child: const ChamaplusApp(),
     ),
   );
 }

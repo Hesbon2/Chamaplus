@@ -47,6 +47,14 @@ class _FakeAuthRepository implements AuthRepository {
     String? email,
   }) =>
       throw UnimplementedError();
+
+  @override
+  Future<void> changePassword({
+    required String currentPassword,
+    required String newPassword,
+    required String newPasswordConfirm,
+  }) =>
+      throw UnimplementedError();
 }
 
 void main() {

@@ -39,4 +39,11 @@ class FakeAuthRemoteDataSource implements AuthRemoteDataSource {
   Future<void> logout(String refreshToken) async {
     logoutCalled = true;
   }
+
+  @override
+  Future<void> changePassword({
+    required String currentPassword,
+    required String newPassword,
+    required String newPasswordConfirm,
+  }) async {}
 }

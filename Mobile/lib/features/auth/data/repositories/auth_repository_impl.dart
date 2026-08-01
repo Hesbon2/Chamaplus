@@ -116,6 +116,19 @@ class AuthRepositoryImpl implements AuthRepository {
     return userDto.toEntity();
   }
 
+  @override
+  Future<void> changePassword({
+    required String currentPassword,
+    required String newPassword,
+    required String newPasswordConfirm,
+  }) {
+    return _authApi.changePassword(
+      currentPassword: currentPassword,
+      newPassword: newPassword,
+      newPasswordConfirm: newPasswordConfirm,
+    );
+  }
+
   Future<void> _persistTokens(String access, String refresh) async {
     await _secureStorage.writeAccessToken(access);
     await _secureStorage.writeRefreshToken(refresh);

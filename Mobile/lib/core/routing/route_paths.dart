@@ -23,6 +23,12 @@ class RoutePaths {
   static const String more = '/more';
   static const String reports = '/reports';
   static const String settings = '/settings';
+  static const String settingsAppearance = '/settings/appearance';
+  static const String settingsSecurity = '/settings/security';
+  static const String settingsNotifications = '/settings/notifications';
+  static const String settingsHelp = '/settings/help';
+  static const String settingsAbout = '/settings/about';
+  static const String settingsDiagnostics = '/settings/diagnostics';
   static const String profile = '/profile';
   static const String editProfile = '/profile/edit';
 
@@ -141,5 +147,11 @@ class RoutePaths {
     pendingApproval,
     profile,
     editProfile,
+    settings,
+    settingsAppearance,
+    settingsSecurity,
+    settingsNotifications,
+    settingsHelp,
+    settingsAbout,
   };
 }

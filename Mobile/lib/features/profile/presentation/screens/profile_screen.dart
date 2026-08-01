@@ -6,9 +6,9 @@ import 'package:intl/intl.dart';
 import '../../../../core/routing/route_paths.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../shared/api_state.dart';
+import '../../../../shared/auth/session_cleanup.dart';
 import '../../../../shared/components/components.dart';
 import '../../../auth/domain/entities/user.dart';
-import '../../../auth/presentation/providers/auth_providers.dart';
 import '../providers/profile_providers.dart';
 
 /// Read-only profile overview for the signed-in user.
@@ -50,39 +50,20 @@ class _ProfileBody extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final theme = Theme.of(context);
     final dateFormat = DateFormat.yMMMd();
 
     return ListView(
       padding: const EdgeInsets.all(AppSpacing.md),
       children: [
-        AppCard(
-          child: Row(
-            children: [
-              AvatarBadge(
-                initials: _initials(user),
-                size: 72,
-              ),
-              const SizedBox(width: AppSpacing.md),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      user.displayName,
-                      style: theme.textTheme.titleLarge,
-                    ),
-                    const SizedBox(height: AppSpacing.xs),
-                    Text(
-                      user.phoneNumber,
-                      style: theme.textTheme.bodyMedium?.copyWith(
-                        color: theme.colorScheme.onSurfaceVariant,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ],
+        ProfileHeader(
+          displayName: user.displayName,
+          subtitle: user.phoneNumber,
+          initials: _initials(user),
+          onTap: () => context.push(RoutePaths.editProfile),
+          trailing: IconButton(
+            tooltip: 'Edit profile',
+            onPressed: () => context.push(RoutePaths.editProfile),
+            icon: const Icon(Icons.edit_outlined),
           ),
         ),
         const SizedBox(height: AppSpacing.md),
@@ -117,6 +98,20 @@ class _ProfileBody extends ConsumerWidget {
           ),
         ),
         const SizedBox(height: AppSpacing.lg),
+        SettingsTile(
+          title: 'Security',
+          subtitle: 'Change password',
+          icon: Icons.lock_outline,
+          onTap: () => context.push(RoutePaths.settingsSecurity),
+        ),
+        const SizedBox(height: AppSpacing.sm),
+        SettingsTile(
+          title: 'Settings',
+          subtitle: 'Appearance, notifications, and more',
+          icon: Icons.settings_outlined,
+          onTap: () => context.push(RoutePaths.settings),
+        ),
+        const SizedBox(height: AppSpacing.lg),
         ActionButton(
           label: 'Edit profile',
           icon: Icons.edit_outlined,
@@ -128,7 +123,18 @@ class _ProfileBody extends ConsumerWidget {
           icon: Icons.logout,
           variant: ActionButtonVariant.secondary,
           isDestructive: true,
-          onPressed: () => ref.read(authControllerProvider.notifier).logout(),
+          onPressed: () async {
+            final confirmed = await showAppConfirmationDialog(
+              context: context,
+              title: 'Sign out?',
+              message: 'You will need to sign in again to access your chamas.',
+              confirmLabel: 'Sign out',
+              isDestructive: true,
+            );
+            if (confirmed) {
+              await performSecureLogout(ref);
+            }
+          },
         ),
       ],
     );
