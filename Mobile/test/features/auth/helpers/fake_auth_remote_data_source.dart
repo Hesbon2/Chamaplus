@@ -52,4 +52,23 @@ class FakeAuthRemoteDataSource implements AuthRemoteDataSource {
     required String newPassword,
     required String newPasswordConfirm,
   }) async {}
+
+  @override
+  Future<Map<String, dynamic>> requestPasswordReset({
+    required String phoneNumber,
+  }) async {
+    return {
+      'message':
+          'If an account exists for that phone number, a reset code has been sent.',
+      'debug_reset_code': '123456',
+    };
+  }
+
+  @override
+  Future<void> resetPassword({
+    required String phoneNumber,
+    required String code,
+    required String newPassword,
+    required String newPasswordConfirm,
+  }) async {}
 }

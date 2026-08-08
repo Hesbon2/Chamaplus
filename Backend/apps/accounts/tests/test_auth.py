@@ -3,11 +3,13 @@ from django.contrib.auth import get_user_model
 
 from apps.accounts.tests.conftest import (
     CHANGE_PASSWORD_URL,
+    FORGOT_PASSWORD_URL,
     LOGIN_URL,
     LOGOUT_URL,
     ME_URL,
     REFRESH_URL,
     REGISTER_URL,
+    RESET_PASSWORD_URL,
     VALID_USER,
 )
 from apps.core.utils.validators import normalize_kenyan_phone_number
@@ -170,5 +172,75 @@ class TestChangePassword:
             format="json",
         )
 
+        assert response.status_code == 400
+        assert response.data["success"] is False
+
+
+@pytest.mark.django_db
+class TestPasswordReset:
+    def test_forgot_password_anti_enumeration(self, api_client, registered_user):
+        known = api_client.post(
+            FORGOT_PASSWORD_URL,
+            {"phone_number": "0712345678"},
+            format="json",
+        )
+        unknown = api_client.post(
+            FORGOT_PASSWORD_URL,
+            {"phone_number": "0799999999"},
+            format="json",
+        )
+
+        assert known.status_code == 200
+        assert unknown.status_code == 200
+        assert known.data["message"] == unknown.data["message"]
+        assert "account exists" in known.data["message"].lower()
+
+    def test_reset_password_success(self, api_client, registered_user, settings):
+        settings.DEBUG = True
+        request = api_client.post(
+            FORGOT_PASSWORD_URL,
+            {"phone_number": "0712345678"},
+            format="json",
+        )
+        code = request.data["data"]["debug_reset_code"]
+
+        response = api_client.post(
+            RESET_PASSWORD_URL,
+            {
+                "phone_number": "0712345678",
+                "code": code,
+                "new_password": "BrandNewPass1",
+                "new_password_confirm": "BrandNewPass1",
+            },
+            format="json",
+        )
+        assert response.status_code == 200
+        registered_user.refresh_from_db()
+        assert registered_user.check_password("BrandNewPass1")
+
+        login = api_client.post(
+            LOGIN_URL,
+            {"phone_number": "0712345678", "password": "BrandNewPass1"},
+            format="json",
+        )
+        assert login.status_code == 200
+
+    def test_reset_password_invalid_code(self, api_client, registered_user, settings):
+        settings.DEBUG = True
+        api_client.post(
+            FORGOT_PASSWORD_URL,
+            {"phone_number": "0712345678"},
+            format="json",
+        )
+        response = api_client.post(
+            RESET_PASSWORD_URL,
+            {
+                "phone_number": "0712345678",
+                "code": "000000",
+                "new_password": "BrandNewPass1",
+                "new_password_confirm": "BrandNewPass1",
+            },
+            format="json",
+        )
         assert response.status_code == 400
         assert response.data["success"] is False

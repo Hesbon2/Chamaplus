@@ -10,10 +10,30 @@ import '../../features/notifications/presentation/providers/notification_provide
 import '../../features/onboarding/presentation/providers/onboarding_providers.dart';
 import '../../features/profile/presentation/providers/profile_providers.dart';
 
-/// Clears session secrets, local caches, and Riverpod state, then signs out.
-Future<void> performSecureLogout(WidgetRef ref) async {
+/// Canonical session teardown used by every logout / session-expiry path.
+///
+/// Clears caches, resets onboarding + deep-link state, invalidates user-scoped
+/// providers, and either calls the server logout API or marks the session
+/// expired locally (when tokens were already cleared by the interceptor).
+Future<void> performSecureLogout(
+  WidgetRef ref, {
+  bool attemptServerLogout = true,
+}) {
+  return performSecureLogoutWithReader(
+    read: ref.read,
+    invalidate: ref.invalidate,
+    attemptServerLogout: attemptServerLogout,
+  );
+}
+
+/// Same cleanup for [Ref] (e.g. session-expiry from [authControllerProvider]).
+Future<void> performSecureLogoutWithReader({
+  required T Function<T>(ProviderListenable<T> provider) read,
+  required void Function(ProviderOrFamily provider) invalidate,
+  bool attemptServerLogout = true,
+}) async {
   try {
-    ref.read(dashboardRepositoryProvider).clearCache();
+    read(dashboardRepositoryProvider).clearCache();
   } catch (error) {
     if (kDebugMode) {
       debugPrint('Dashboard cache clear skipped: $error');
@@ -21,21 +41,27 @@ Future<void> performSecureLogout(WidgetRef ref) async {
   }
 
   try {
-    await ref.read(offlineCacheStoreProvider).clearAll();
+    await read(offlineCacheStoreProvider).clearAll();
   } catch (error) {
     if (kDebugMode) {
       debugPrint('Offline cache clear skipped: $error');
     }
   }
 
-  await ref.read(authControllerProvider.notifier).logout();
+  final auth = read(authControllerProvider.notifier);
+  if (attemptServerLogout) {
+    await auth.logout();
+  } else {
+    auth.onSessionExpired();
+  }
 
-  ref.read(onboardingGateProvider.notifier).state = OnboardingGate.unknown;
-  ref.read(pendingDeepLinkProvider.notifier).state = null;
+  read(onboardingGateProvider.notifier).state = OnboardingGate.unknown;
+  read(pendingDeepLinkProvider.notifier).state = null;
 
-  ref.invalidate(profileControllerProvider);
-  ref.invalidate(dashboardProvider);
-  ref.invalidate(chamaListControllerProvider);
-  ref.invalidate(notificationsDashboardProvider);
-  ref.invalidate(notificationUnreadCountProvider);
+  invalidate(profileControllerProvider);
+  invalidate(dashboardProvider);
+  invalidate(chamaListControllerProvider);
+  invalidate(pendingInvitationsControllerProvider);
+  invalidate(notificationsDashboardProvider);
+  invalidate(notificationUnreadCountProvider);
 }

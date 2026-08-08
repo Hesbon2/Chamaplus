@@ -3,11 +3,13 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/api/api_client.dart';
 import '../../../../core/api/session_expired_notifier.dart';
 import '../../../../core/storage/secure_storage_service.dart';
+import '../../../../shared/auth/session_cleanup.dart';
 import '../../data/datasources/auth_api.dart';
 import '../../data/repositories/auth_repository_impl.dart';
 import '../../domain/repositories/auth_repository.dart';
 import '../controllers/auth_controller.dart';
 import '../controllers/auth_state.dart';
+import '../controllers/forgot_password_controller.dart';
 import '../controllers/login_controller.dart';
 import '../controllers/register_controller.dart';
 
@@ -26,9 +28,17 @@ final authControllerProvider =
     StateNotifierProvider<AuthController, AuthState>((ref) {
   final controller = AuthController(ref.watch(authRepositoryProvider));
 
-  ref.read(sessionExpiredNotifierProvider).register(
-        controller.onSessionExpired,
+  // Session expiry must run the same cleanup as explicit logout (minus the
+  // server blacklist call — tokens are already cleared by the interceptor).
+  ref.read(sessionExpiredNotifierProvider).register(() {
+    Future.microtask(() {
+      performSecureLogoutWithReader(
+        read: ref.read,
+        invalidate: ref.invalidate,
+        attemptServerLogout: false,
       );
+    });
+  });
 
   return controller;
 });
@@ -41,4 +51,9 @@ final loginControllerProvider =
 final registerControllerProvider =
     StateNotifierProvider.autoDispose<RegisterController, RegisterState>((ref) {
   return RegisterController(ref.watch(authRepositoryProvider));
+});
+
+final forgotPasswordControllerProvider = StateNotifierProvider.autoDispose<
+    ForgotPasswordController, ForgotPasswordState>((ref) {
+  return ForgotPasswordController(ref.watch(authRepositoryProvider));
 });

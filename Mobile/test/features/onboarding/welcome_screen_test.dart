@@ -144,6 +144,18 @@ class _StubAuthRepository implements AuthRepository {
     required String newPasswordConfirm,
   }) async {}
 
+  @override
+  Future<String?> requestPasswordReset({required String phoneNumber}) async =>
+      null;
+
+  @override
+  Future<void> resetPassword({
+    required String phoneNumber,
+    required String code,
+    required String newPassword,
+    required String newPasswordConfirm,
+  }) async {}
+
   static final _user = User(
     id: 'u1',
     phoneNumber: '+254700000000',

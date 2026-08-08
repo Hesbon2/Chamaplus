@@ -13,6 +13,8 @@ class ApiConstants {
   static const String authRefresh = '/auth/refresh/';
   static const String authLogout = '/auth/logout/';
   static const String authChangePassword = '/auth/change-password/';
+  static const String authForgotPassword = '/auth/forgot-password/';
+  static const String authResetPassword = '/auth/reset-password/';
   static const String usersMe = '/users/me/';
 
   // Chama & dashboard

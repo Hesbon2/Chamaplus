@@ -9,6 +9,8 @@ LOGIN_URL = "/api/v1/auth/login/"
 REFRESH_URL = "/api/v1/auth/refresh/"
 LOGOUT_URL = "/api/v1/auth/logout/"
 ME_URL = "/api/v1/users/me/"
+FORGOT_PASSWORD_URL = "/api/v1/auth/forgot-password/"
+RESET_PASSWORD_URL = "/api/v1/auth/reset-password/"
 CHANGE_PASSWORD_URL = "/api/v1/auth/change-password/"
 
 VALID_USER = {

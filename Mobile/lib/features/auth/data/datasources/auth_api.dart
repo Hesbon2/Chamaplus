@@ -110,6 +110,59 @@ class AuthApi implements AuthRemoteDataSource {
     }
   }
 
+  @override
+  Future<Map<String, dynamic>> requestPasswordReset({
+    required String phoneNumber,
+  }) async {
+    final response = await _apiClient.post<Map<String, dynamic>>(
+      ApiConstants.authForgotPassword,
+      data: {'phone_number': phoneNumber},
+      options: Options(
+        extra: {ApiConstants.skipAuthKey: true},
+      ),
+    );
+    return _unwrapMap(response.data);
+  }
+
+  @override
+  Future<void> resetPassword({
+    required String phoneNumber,
+    required String code,
+    required String newPassword,
+    required String newPasswordConfirm,
+  }) async {
+    final response = await _apiClient.post<Map<String, dynamic>>(
+      ApiConstants.authResetPassword,
+      data: {
+        'phone_number': phoneNumber,
+        'code': code,
+        'new_password': newPassword,
+        'new_password_confirm': newPasswordConfirm,
+      },
+      options: Options(
+        extra: {ApiConstants.skipAuthKey: true},
+      ),
+    );
+    final envelope = ApiResponse<Map<String, dynamic>>.fromJson(
+      response.data ?? {},
+      (data) => Map<String, dynamic>.from(data as Map? ?? {}),
+    );
+    if (!envelope.success) {
+      throw ServerException(message: envelope.message);
+    }
+  }
+
+  Map<String, dynamic> _unwrapMap(Map<String, dynamic>? json) {
+    final envelope = ApiResponse<Map<String, dynamic>>.fromJson(
+      json ?? {},
+      (data) => Map<String, dynamic>.from(data as Map? ?? {}),
+    );
+    if (!envelope.success || envelope.data == null) {
+      throw ServerException(message: envelope.message);
+    }
+    return envelope.data!;
+  }
+
   TokenResponseDto _parseTokenResponse(Map<String, dynamic>? json) {
     final envelope = ApiResponse<Map<String, dynamic>>.fromJson(
       json ?? {},

@@ -13,7 +13,7 @@
 
 | Area | Status |
 |------|--------|
-| Auth / onboarding | ✅ Shared form framework; JWT refresh + session restore |
+| Auth / onboarding | ✅ Shared forms; JWT refresh + secure logout; onboarding gate; forgot/reset password |
 | App shell + navigation | ✅ Offline banner; deep-link pending restore |
 | Chamas / contributions / loans / meetings / notifications / reports | ✅ + offline GET cache |
 | Loan product management (mobile) | ✅ Create/edit/delete via existing backend CRUD; role-aware UI |
@@ -281,6 +281,7 @@ Chamaplus/
 | Table | Model | App | PK | Key fields |
 |-------|-------|-----|----|------------|
 | `users` | `User` | accounts | UUID | `phone_number`, `email`, `first_name`, `last_name` |
+| `password_reset_challenges` | `PasswordResetChallenge` | accounts | UUID | hashed OTP, expiry, attempts |
 | `roles` | `Role` | roles | UUID | `name`, `slug`, `is_platform_role` |
 | `chamas` | `Chama` | chamas | UUID | `name`, `invite_code`, `currency`, `is_active`, `created_by` |
 | `memberships` | `Membership` | memberships | UUID | `user`, `chama`, `role`, `status`, `joined_at` |
@@ -404,7 +405,7 @@ Chamaplus/
 
 | Service | App | Methods |
 |---------|-----|---------|
-| `AuthService` | accounts | `register_user`, `login`, `refresh_token`, `logout`, `update_profile`, `change_password` |
+| `AuthService` | accounts | `register_user`, `login`, `refresh_token`, `logout`, `update_profile`, `change_password`, `request_password_reset`, `reset_password` |
 | `ChamaService` | chamas | `create_chama`, `list_chamas_for_user`, `get_chama`, `update_chama`, `archive_chama` |
 | `MembershipService` | memberships | `get_membership`, `get_user_membership`, `user_is_active_member`, `user_has_role`, `invite_member`, `join_chama`, `list_members`, `list_pending_invitations`, `accept_invitation`, `decline_invitation`, `update_role`, `update_status` |
 | `ContributionCycleService` | contributions | `create_cycle`, `list_cycles`, `get_cycle`, `update_cycle`, `close_cycle`, `delete_cycle`, `get_chama` |
@@ -503,6 +504,8 @@ All views use class-based API views with `@extend_schema` OpenAPI annotations.
 | POST | `/api/v1/auth/refresh/` | Public | `RefreshTokenView` |
 | POST | `/api/v1/auth/logout/` | JWT | `LogoutView` |
 | POST | `/api/v1/auth/change-password/` | JWT | `ChangePasswordView` |
+| POST | `/api/v1/auth/forgot-password/` | Public | `ForgotPasswordView` |
+| POST | `/api/v1/auth/reset-password/` | Public | `ResetPasswordView` |
 
 ### 7.3 API v1 — Users (`/api/v1/users/`)
 
@@ -758,7 +761,8 @@ One-to-one with completed meetings. Secretary/Chairperson prepares; Chairperson 
 | Token rotation | ✅ | New refresh on each refresh |
 | Token blacklisting | ✅ | Logout invalidates refresh token |
 | Profile view/update | ✅ | GET/PATCH `/users/me/` |
-| Password change | ✅ | Requires current password |
+| Password change | ✅ | Requires current password; blacklists refresh tokens |
+| Forgot / reset password | ✅ | Phone OTP challenge (`PasswordResetChallenge`); anti-enumeration; DEBUG returns `debug_reset_code` (SMS/email channels still stubs) |
 | Default auth on all endpoints | ✅ | `IsAuthenticated` unless `AllowAny` |
 
 ---
@@ -914,7 +918,7 @@ Full matrix documented in `Docs/PERMISSIONS.md`.
 | JWT, Swagger, CORS, logging, static/media | 1a |
 | Core infrastructure (envelope, exceptions, base models, pagination) | 1a |
 | Custom User model (UUID, phone auth) | 1b |
-| Authentication API (register, login, refresh, logout, profile, change password) | 1b |
+| Authentication API (register, login, refresh, logout, profile, change/forgot/reset password) | 1b / session hardening |
 | Kenyan phone validation | 1b |
 | Role catalog model + seed command | 2 |
 | Role list API | 2 |

@@ -108,3 +108,26 @@ class ChangePasswordSerializer(serializers.Serializer):
                 {"new_password_confirm": "New passwords do not match."}
             )
         return attrs
+
+
+class ForgotPasswordSerializer(serializers.Serializer):
+    phone_number = KenyanPhoneField()
+
+
+class ResetPasswordSerializer(serializers.Serializer):
+    phone_number = KenyanPhoneField()
+    code = serializers.CharField(min_length=6, max_length=6)
+    new_password = serializers.CharField(write_only=True, min_length=8)
+    new_password_confirm = serializers.CharField(write_only=True, min_length=8)
+
+    def validate_code(self, value):
+        if not value.isdigit():
+            raise serializers.ValidationError("Reset code must be 6 digits.")
+        return value
+
+    def validate(self, attrs):
+        if attrs["new_password"] != attrs["new_password_confirm"]:
+            raise serializers.ValidationError(
+                {"new_password_confirm": "New passwords do not match."}
+            )
+        return attrs

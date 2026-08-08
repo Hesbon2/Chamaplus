@@ -23,4 +23,15 @@ abstract class AuthRemoteDataSource {
     required String newPassword,
     required String newPasswordConfirm,
   });
+
+  Future<Map<String, dynamic>> requestPasswordReset({
+    required String phoneNumber,
+  });
+
+  Future<void> resetPassword({
+    required String phoneNumber,
+    required String code,
+    required String newPassword,
+    required String newPasswordConfirm,
+  });
 }

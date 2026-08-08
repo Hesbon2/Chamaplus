@@ -128,7 +128,8 @@ class RouterNotifier extends ChangeNotifier {
     }
 
     if (authState.isAuthenticated) {
-      if (gate == OnboardingGate.unknown) {
+      if (gate == OnboardingGate.unknown ||
+          gate == OnboardingGate.unresolved) {
         if (location == RoutePaths.splash) return null;
         capturePending();
         return RoutePaths.splash;
@@ -150,7 +151,8 @@ class RouterNotifier extends ChangeNotifier {
       }
 
       if (location == RoutePaths.welcome ||
-          location == RoutePaths.pendingApproval) {
+          location == RoutePaths.pendingApproval ||
+          location == RoutePaths.pendingInvitations) {
         return consumePending() ?? RoutePaths.home;
       }
 

@@ -5,11 +5,13 @@ from rest_framework_simplejwt.exceptions import TokenError
 
 from apps.accounts.serializers import (
     ChangePasswordSerializer,
+    ForgotPasswordSerializer,
     LoginSerializer,
     LogoutSerializer,
     ProfileUpdateSerializer,
     RefreshTokenSerializer,
     RegisterSerializer,
+    ResetPasswordSerializer,
     UserSerializer,
 )
 from apps.accounts.services.auth_service import AuthService
@@ -151,4 +153,46 @@ class ChangePasswordView(EnvelopeAPIView):
         return success_response(
             data=None,
             message="Password changed successfully.",
+        )
+
+
+class ForgotPasswordView(EnvelopeAPIView):
+    permission_classes = [AllowAny]
+
+    @extend_schema(
+        tags=["Authentication"],
+        summary="Request a password reset code (anti-enumeration)",
+        request=ForgotPasswordSerializer,
+    )
+    def post(self, request):
+        serializer = ForgotPasswordSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        payload = AuthService.request_password_reset(
+            phone_number=serializer.validated_data["phone_number"],
+        )
+        return success_response(
+            data=payload,
+            message=payload["message"],
+        )
+
+
+class ResetPasswordView(EnvelopeAPIView):
+    permission_classes = [AllowAny]
+
+    @extend_schema(
+        tags=["Authentication"],
+        summary="Reset password with phone OTP code",
+        request=ResetPasswordSerializer,
+    )
+    def post(self, request):
+        serializer = ResetPasswordSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        AuthService.reset_password(
+            phone_number=serializer.validated_data["phone_number"],
+            code=serializer.validated_data["code"],
+            new_password=serializer.validated_data["new_password"],
+        )
+        return success_response(
+            data=None,
+            message="Password reset successfully. You can sign in with your new password.",
         )

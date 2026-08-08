@@ -315,6 +315,33 @@ Dashboard monthly trends already use this kit (no duplicate fl_chart code in the
 
 Report screens build a `ReportExportRequest` and call `runReportExportFlow` / `ReportExportService` — do not fork export logic.
 
+## Auth & session
+
+Path: `lib/features/auth/` (+ onboarding gate under `lib/features/onboarding/`)
+
+### Session cleanup
+
+`performSecureLogout` / `performSecureLogoutWithReader` (`lib/shared/auth/session_cleanup.dart`) is the canonical teardown for logout and JWT session expiry:
+
+- Clears dashboard in-memory cache and **offline GET cache**
+- Server logout (or local expire when tokens already cleared)
+- Resets onboarding gate to `unknown`, clears pending deep link
+- Invalidates profile, dashboard, chamas, pending invitations, notifications
+
+Welcome and settings use this helper (not bare `AuthController.logout()` alone).
+
+### Onboarding gate
+
+`resolveOnboardingGate` maps empty chamas → `needsOnboarding`, active membership → `ready`. **Network / API failures → `unresolved`** (splash retry), never Welcome. Authenticated + `unknown|unresolved` stay on splash until resolved.
+
+### Forgot / reset password
+
+| Route | Screen |
+|-------|--------|
+| `/forgot-password` | Two-step: request code → OTP + new password |
+
+Wired to `POST /api/v1/auth/forgot-password/` and `POST /api/v1/auth/reset-password/`. Shared form widgets (`AppTextField`, `AppSubmitButton`). In DEBUG, backend may return `debug_reset_code` (SMS/email delivery still stubbed server-side).
+
 ## Settings & Profile module
 
 Path: `lib/features/settings/` (+ profile screens under `lib/features/profile/`)
@@ -344,7 +371,7 @@ Path: `lib/features/settings/` (+ profile screens under `lib/features/profile/`)
 
 ### Logout
 
-`performSecureLogout` clears tokens, dashboard cache, **offline GET cache**, onboarding gate, pending deep link, and invalidates key providers.
+Uses `performSecureLogout` (see Auth & session above).
 
 ## Production readiness (RC1)
 

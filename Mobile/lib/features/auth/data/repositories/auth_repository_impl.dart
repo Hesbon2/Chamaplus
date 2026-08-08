@@ -146,6 +146,31 @@ class AuthRepositoryImpl implements AuthRepository {
     );
   }
 
+  @override
+  Future<String?> requestPasswordReset({required String phoneNumber}) async {
+    final data = await _authApi.requestPasswordReset(phoneNumber: phoneNumber);
+    final debugCode = data['debug_reset_code'];
+    if (debugCode is String && debugCode.isNotEmpty) {
+      return debugCode;
+    }
+    return null;
+  }
+
+  @override
+  Future<void> resetPassword({
+    required String phoneNumber,
+    required String code,
+    required String newPassword,
+    required String newPasswordConfirm,
+  }) {
+    return _authApi.resetPassword(
+      phoneNumber: phoneNumber,
+      code: code,
+      newPassword: newPassword,
+      newPasswordConfirm: newPasswordConfirm,
+    );
+  }
+
   Future<void> _persistTokens(String access, String refresh) async {
     await _secureStorage.writeAccessToken(access);
     await _secureStorage.writeRefreshToken(refresh);

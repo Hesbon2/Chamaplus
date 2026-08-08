@@ -41,4 +41,17 @@ abstract class AuthRepository {
     required String newPassword,
     required String newPasswordConfirm,
   });
+
+  /// Request a password-reset code for [phoneNumber] (anti-enumeration).
+  ///
+  /// Returns an optional debug code when the backend is in DEBUG mode.
+  Future<String?> requestPasswordReset({required String phoneNumber});
+
+  /// Confirm password reset with the OTP code from [requestPasswordReset].
+  Future<void> resetPassword({
+    required String phoneNumber,
+    required String code,
+    required String newPassword,
+    required String newPasswordConfirm,
+  });
 }

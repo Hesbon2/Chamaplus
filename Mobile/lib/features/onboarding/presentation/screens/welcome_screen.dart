@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import '../../../../core/routing/route_paths.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../shared/api_state.dart';
+import '../../../../shared/auth/session_cleanup.dart';
 import '../../../../shared/components/components.dart';
 import '../../../auth/presentation/providers/auth_providers.dart';
 import '../../../chamas/domain/entities/chama.dart';
@@ -36,7 +37,7 @@ class WelcomeScreen extends ConsumerWidget {
           ),
           IconButton(
             tooltip: 'Sign out',
-            onPressed: () => ref.read(authControllerProvider.notifier).logout(),
+            onPressed: () => performSecureLogout(ref),
             icon: const Icon(Icons.logout),
           ),
         ],
