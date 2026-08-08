@@ -34,9 +34,9 @@ ChamaPlus backend is a **Django 5.0 + DRF** REST API backed by **MySQL (XAMPP)**
 |--------|------:|
 | Django apps registered | 12 |
 | Django apps with domain models | 10 |
-| Database tables (domain) | 16 |
-| API endpoints (business) | 76 |
-| Unit/integration tests | 115 |
+| Database tables (domain) | 17 |
+| API endpoints (business) | 78 |
+| Unit/integration tests | 118 |
 | Management commands | 1 |
 
 ---
