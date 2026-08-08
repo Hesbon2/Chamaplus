@@ -10,6 +10,8 @@ abstract class AuthRemoteDataSource {
 
   Future<TokenResponseDto> login(LoginRequestDto request);
 
+  Future<TokenResponseDto> refresh(String refreshToken);
+
   Future<UserDto> getCurrentUser();
 
   Future<UserDto> updateProfile(ProfileUpdateDto request);

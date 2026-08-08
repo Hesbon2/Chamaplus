@@ -25,6 +25,12 @@ class FakeAuthRemoteDataSource implements AuthRemoteDataSource {
   }
 
   @override
+  Future<TokenResponseDto> refresh(String refreshToken) async {
+    if (loginError != null) throw loginError!;
+    return loginResponse!;
+  }
+
+  @override
   Future<UserDto> getCurrentUser() async {
     if (getCurrentUserError != null) throw getCurrentUserError!;
     return userResponse!;

@@ -22,6 +22,18 @@ class ChamaplusApp extends ConsumerWidget {
       darkTheme: AppTheme.dark,
       themeMode: themeMode,
       routerConfig: router,
+      builder: (context, child) {
+        final media = MediaQuery.of(context);
+        // Cap extreme text scaling while still supporting large fonts.
+        final textScaler = media.textScaler.clamp(
+          minScaleFactor: 0.85,
+          maxScaleFactor: 1.4,
+        );
+        return MediaQuery(
+          data: media.copyWith(textScaler: textScaler),
+          child: child ?? const SizedBox.shrink(),
+        );
+      },
     );
   }
 }

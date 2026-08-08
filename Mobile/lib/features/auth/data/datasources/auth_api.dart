@@ -44,6 +44,23 @@ class AuthApi implements AuthRemoteDataSource {
   }
 
   @override
+  Future<TokenResponseDto> refresh(String refreshToken) async {
+    final response = await _apiClient.post<Map<String, dynamic>>(
+      ApiConstants.authRefresh,
+      data: {'refresh': refreshToken},
+      options: Options(
+        extra: {
+          ApiConstants.skipAuthKey: true,
+          ApiConstants.skipRefreshKey: true,
+          ApiConstants.skipRetryKey: true,
+          ApiConstants.skipCacheKey: true,
+        },
+      ),
+    );
+    return _parseTokenResponse(response.data);
+  }
+
+  @override
   Future<UserDto> getCurrentUser() async {
     final response = await _apiClient.get<Map<String, dynamic>>(
       ApiConstants.usersMe,

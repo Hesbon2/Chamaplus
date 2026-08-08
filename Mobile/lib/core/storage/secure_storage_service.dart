@@ -5,11 +5,17 @@ import '../constants/app_constants.dart';
 import '../errors/app_exception.dart';
 
 /// Wrapper around [FlutterSecureStorage] for token persistence.
+///
+/// Uses encrypted shared preferences on Android and Keychain on iOS.
+/// Never log token values.
 class SecureStorageService {
   SecureStorageService({FlutterSecureStorage? storage})
       : _storage = storage ??
             const FlutterSecureStorage(
               aOptions: AndroidOptions(encryptedSharedPreferences: true),
+              iOptions: IOSOptions(
+                accessibility: KeychainAccessibility.first_unlock_this_device,
+              ),
             );
 
   final FlutterSecureStorage _storage;
@@ -22,6 +28,15 @@ class SecureStorageService {
     return _read(AppConstants.refreshTokenKey);
   }
 
+  Future<bool> hasTokens() async {
+    final access = await readAccessToken();
+    final refresh = await readRefreshToken();
+    return access != null &&
+        access.isNotEmpty &&
+        refresh != null &&
+        refresh.isNotEmpty;
+  }
+
   Future<void> writeAccessToken(String token) {
     return _write(AppConstants.accessTokenKey, token);
   }
@@ -30,9 +45,26 @@ class SecureStorageService {
     return _write(AppConstants.refreshTokenKey, token);
   }
 
+  Future<void> writeTokens({
+    required String access,
+    required String refresh,
+  }) async {
+    await writeAccessToken(access);
+    await writeRefreshToken(refresh);
+  }
+
   Future<void> clearTokens() async {
     await _delete(AppConstants.accessTokenKey);
     await _delete(AppConstants.refreshTokenKey);
+  }
+
+  /// Clears all app keys from secure storage (logout / wipe).
+  Future<void> clearAll() async {
+    try {
+      await _storage.deleteAll();
+    } catch (error) {
+      throw StorageException(cause: error);
+    }
   }
 
   Future<String?> _read(String key) async {

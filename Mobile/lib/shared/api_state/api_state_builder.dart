@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../core/errors/app_exception.dart';
+import '../../core/errors/error_handler.dart';
 import '../../core/theme/app_spacing.dart';
 import '../components/empty_state.dart';
 import '../components/shimmer_loader.dart';
@@ -150,12 +151,13 @@ class ApiStateBuilder<T> extends StatelessWidget {
 
     final message = error is AppException
         ? error.message
-        : state.errorMessage;
+        : ErrorHandler.userMessage(error);
 
+    final isOffline = error is NetworkException;
     return EmptyState(
-      title: 'Something went wrong',
+      title: isOffline ? 'You appear to be offline' : 'Something went wrong',
       message: message,
-      icon: Icons.error_outline,
+      icon: isOffline ? Icons.wifi_off_outlined : Icons.error_outline,
       actionLabel: onRetry != null ? 'Try again' : null,
       onAction: onRetry == null ? null : () => onRetry!(),
     );

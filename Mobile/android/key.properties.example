@@ -1,0 +1,12 @@
+# Copy to key.properties (do NOT commit key.properties or keystore files).
+# Place the upload keystore outside the repo or under android/ (gitignored).
+#
+# storePassword=***
+# keyPassword=***
+# keyAlias=chamaplus
+# storeFile=../keystore/chamaplus-upload.jks
+
+storePassword=
+keyPassword=
+keyAlias=chamaplus
+storeFile=../keystore/chamaplus-upload.jks

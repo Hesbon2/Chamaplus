@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 
 import '../../../../core/constants/app_constants.dart';
 import '../../../../core/theme/app_spacing.dart';
+import '../../../../core/utils/safe_clipboard.dart';
 import '../../../../core/widgets/app_snackbar.dart';
 import '../../../../shared/components/components.dart';
 
@@ -51,11 +51,14 @@ class HelpSupportScreen extends StatelessWidget {
             icon: Icons.email_outlined,
             trailing: const Icon(Icons.copy_outlined),
             onTap: () async {
-              await Clipboard.setData(
-                const ClipboardData(text: AppConstants.supportEmail),
+              final copied = await SafeClipboard.copyPublicText(
+                AppConstants.supportEmail,
               );
               if (context.mounted) {
-                AppSnackbar.info(context, 'Support email copied.');
+                AppSnackbar.info(
+                  context,
+                  copied ? 'Support email copied.' : 'Could not copy.',
+                );
               }
             },
           ),

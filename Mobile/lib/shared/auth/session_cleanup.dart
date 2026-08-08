@@ -1,10 +1,12 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../core/cache/offline_cache_store.dart';
 import '../../core/routing/pending_deep_link.dart';
 import '../../features/auth/presentation/providers/auth_providers.dart';
 import '../../features/chamas/presentation/providers/chama_providers.dart';
 import '../../features/dashboard/presentation/providers/dashboard_provider.dart';
+import '../../features/notifications/presentation/providers/notification_providers.dart';
 import '../../features/onboarding/presentation/providers/onboarding_providers.dart';
 import '../../features/profile/presentation/providers/profile_providers.dart';
 
@@ -18,6 +20,14 @@ Future<void> performSecureLogout(WidgetRef ref) async {
     }
   }
 
+  try {
+    await ref.read(offlineCacheStoreProvider).clearAll();
+  } catch (error) {
+    if (kDebugMode) {
+      debugPrint('Offline cache clear skipped: $error');
+    }
+  }
+
   await ref.read(authControllerProvider.notifier).logout();
 
   ref.read(onboardingGateProvider.notifier).state = OnboardingGate.unknown;
@@ -26,4 +36,6 @@ Future<void> performSecureLogout(WidgetRef ref) async {
   ref.invalidate(profileControllerProvider);
   ref.invalidate(dashboardProvider);
   ref.invalidate(chamaListControllerProvider);
+  ref.invalidate(notificationsDashboardProvider);
+  ref.invalidate(notificationUnreadCountProvider);
 }

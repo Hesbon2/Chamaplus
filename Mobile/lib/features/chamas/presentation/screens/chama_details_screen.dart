@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
@@ -7,6 +6,7 @@ import 'package:share_plus/share_plus.dart';
 
 import '../../../../core/routing/route_paths.dart';
 import '../../../../core/theme/app_spacing.dart';
+import '../../../../core/utils/safe_clipboard.dart';
 import '../../../../core/widgets/app_snackbar.dart';
 import '../../../../shared/api_state.dart';
 import '../../../../shared/components/components.dart';
@@ -107,11 +107,16 @@ class _DetailsBody extends StatelessWidget {
                       IconButton(
                         tooltip: 'Copy code',
                         onPressed: () async {
-                          await Clipboard.setData(
-                            ClipboardData(text: chama.inviteCode!),
+                          final copied = await SafeClipboard.copyPublicText(
+                            chama.inviteCode!,
                           );
                           if (context.mounted) {
-                            AppSnackbar.success(context, 'Invite code copied');
+                            AppSnackbar.success(
+                              context,
+                              copied
+                                  ? 'Invite code copied'
+                                  : 'Could not copy invite code',
+                            );
                           }
                         },
                         icon: const Icon(Icons.copy_outlined),

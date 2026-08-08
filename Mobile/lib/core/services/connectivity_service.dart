@@ -10,8 +10,10 @@ class ConnectivityService {
 
   final Connectivity _connectivity;
 
-  Stream<bool> get onConnectivityChanged {
-    return _connectivity.onConnectivityChanged.map(_isConnected);
+  /// Emits current status first, then subsequent changes.
+  Stream<bool> get onConnectivityChanged async* {
+    yield await hasConnection();
+    yield* _connectivity.onConnectivityChanged.map(_isConnected);
   }
 
   Future<bool> hasConnection() async {

@@ -37,7 +37,9 @@ class SettingsTile extends StatelessWidget {
           horizontal: AppSpacing.md,
           vertical: dense ? AppSpacing.sm : AppSpacing.md,
         ),
-        child: Row(
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(minHeight: 48),
+          child: Row(
           children: [
             if (icon != null) ...[
               Icon(
@@ -76,6 +78,7 @@ class SettingsTile extends StatelessWidget {
                   color: theme.colorScheme.onSurfaceVariant,
                 ),
           ],
+        ),
         ),
       ),
     );

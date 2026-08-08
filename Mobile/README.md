@@ -298,7 +298,17 @@ Path: `lib/features/settings/` (+ profile screens under `lib/features/profile/`)
 
 ### Logout
 
-`performSecureLogout` clears tokens, dashboard cache, onboarding gate, pending deep link, and invalidates key providers.
+`performSecureLogout` clears tokens, dashboard cache, **offline GET cache**, onboarding gate, pending deep link, and invalidates key providers.
+
+## Production readiness (RC1)
+
+See:
+
+- [`Docs/PRODUCTION_HARDENING.md`](../Docs/PRODUCTION_HARDENING.md)
+- [`Docs/RELEASE_CHECKLIST.md`](../Docs/RELEASE_CHECKLIST.md)
+- [`Docs/DEPLOYMENT_GUIDE.md`](../Docs/DEPLOYMENT_GUIDE.md)
+
+Network stack: timeouts, connectivity gate, offline GET cache, JWT refresh, retries, debug-only redacted logging.
 
 ## Run
 
@@ -306,7 +316,14 @@ Path: `lib/features/settings/` (+ profile screens under `lib/features/profile/`)
 flutter pub get
 flutter run
 flutter test
-dart analyze
+flutter analyze
+```
+
+Release artifacts:
+
+```bash
+flutter build apk --release
+flutter build appbundle --release
 ```
 
 Architecture audit notes: see repo root [`Docs/ARCHITECTURE_AUDIT.md`](../Docs/ARCHITECTURE_AUDIT.md).

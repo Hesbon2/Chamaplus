@@ -3,7 +3,7 @@ class AppConstants {
   AppConstants._();
 
   static const String appName = 'ChamaPlus';
-  static const String appVersion = '1.0.0+1';
+  static const String appVersion = '1.0.0-rc.1+2';
   static const String supportEmail = 'support@chamaplus.app';
   static const String accessTokenKey = 'access_token';
   static const String refreshTokenKey = 'refresh_token';

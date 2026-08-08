@@ -1,7 +1,7 @@
 name: chamaplus_mobile
 description: ChamaPlus mobile client for Kenyan savings groups (Chamas).
 publish_to: 'none'
-version: 1.0.0+1
+version: 1.0.0-rc.1+2
 
 environment:
   sdk: '>=3.3.0 <4.0.0'

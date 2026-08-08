@@ -1,3 +1,4 @@
+import 'package:chamaplus_mobile/core/cache/offline_cache_store.dart';
 import 'package:chamaplus_mobile/core/routing/route_paths.dart';
 import 'package:chamaplus_mobile/core/storage/preferences_storage.dart';
 import 'package:chamaplus_mobile/core/theme/theme_provider.dart';
@@ -17,10 +18,13 @@ import '../../auth/helpers/fake_auth_repository.dart';
 
 void main() {
   late PreferencesStorage preferences;
+  late OfflineCacheStore offlineCache;
 
   setUp(() async {
     SharedPreferences.setMockInitialValues({});
-    preferences = PreferencesStorage(await SharedPreferences.getInstance());
+    final prefs = await SharedPreferences.getInstance();
+    preferences = PreferencesStorage(prefs);
+    offlineCache = OfflineCacheStore(prefs);
   });
 
   ProviderScope wrap(Widget child) {
@@ -29,6 +33,7 @@ void main() {
     return ProviderScope(
       overrides: [
         preferencesStorageProvider.overrideWithValue(preferences),
+        offlineCacheStoreProvider.overrideWithValue(offlineCache),
         authRepositoryProvider.overrideWithValue(
           FakeAuthRepository(restoreResult: testUser()),
         ),
@@ -47,9 +52,15 @@ void main() {
 
     expect(find.text('Settings'), findsOneWidget);
     expect(find.text('Security'), findsOneWidget);
-    expect(find.text('Appearance'), findsOneWidget);
     expect(find.byType(SettingsTile), findsWidgets);
     expect(find.byType(ProfileHeader), findsOneWidget);
+
+    await tester.scrollUntilVisible(
+      find.text('Appearance'),
+      200,
+      scrollable: find.byType(Scrollable).first,
+    );
+    expect(find.text('Appearance'), findsOneWidget);
 
     await tester.scrollUntilVisible(
       find.text('Notifications'),

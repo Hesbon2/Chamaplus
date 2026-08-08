@@ -1,4 +1,5 @@
 import 'package:chamaplus_mobile/app.dart';
+import 'package:chamaplus_mobile/core/cache/offline_cache_store.dart';
 import 'package:chamaplus_mobile/core/storage/preferences_storage.dart';
 import 'package:chamaplus_mobile/core/theme/theme_provider.dart';
 import 'package:chamaplus_mobile/features/auth/presentation/providers/auth_providers.dart';
@@ -12,12 +13,15 @@ void main() {
   testWidgets('App shows splash then login when unauthenticated',
       (tester) async {
     SharedPreferences.setMockInitialValues({});
-    final preferences = PreferencesStorage(await SharedPreferences.getInstance());
+    final prefs = await SharedPreferences.getInstance();
+    final preferences = PreferencesStorage(prefs);
+    final offlineCache = OfflineCacheStore(prefs);
 
     await tester.pumpWidget(
       ProviderScope(
         overrides: [
           preferencesStorageProvider.overrideWithValue(preferences),
+          offlineCacheStoreProvider.overrideWithValue(offlineCache),
           authRepositoryProvider.overrideWithValue(
             FakeAuthRepository(restoreResult: null),
           ),

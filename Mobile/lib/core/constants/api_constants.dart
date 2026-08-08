@@ -114,4 +114,22 @@ class ApiConstants {
 
   /// Dio [RequestOptions.extra] flag — skip 401 refresh handling.
   static const String skipRefreshKey = 'skipRefresh';
+
+  /// Skip offline GET cache read/write for this request.
+  static const String skipCacheKey = 'skipCache';
+
+  /// Bypass fresh-cache short-circuit and hit the network.
+  static const String forceRefreshKey = 'forceRefresh';
+
+  /// Response was served from [OfflineCacheStore].
+  static const String fromCacheKey = 'fromCache';
+
+  /// Cached response is past its TTL (stale-while-offline).
+  static const String staleCacheKey = 'staleCache';
+
+  /// Skip [RetryInterceptor] for this request.
+  static const String skipRetryKey = 'skipRetry';
+
+  /// Current retry attempt counter (managed by [RetryInterceptor]).
+  static const String retryAttemptKey = 'retryAttempt';
 }

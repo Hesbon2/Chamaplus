@@ -1,12 +1,19 @@
 import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../cache/offline_cache_store.dart';
 import '../config/env_config.dart';
 import '../constants/api_constants.dart';
 import '../errors/error_handler.dart';
+import '../services/connectivity_service.dart';
 import '../storage/secure_storage_service.dart';
 import 'auth_interceptor.dart';
+import 'connectivity_interceptor.dart';
+import 'debug_logging_interceptor.dart';
+import 'offline_cache_interceptor.dart';
+import 'retry_interceptor.dart';
 import 'session_expired_notifier.dart';
+import 'timeout_interceptor.dart';
 import 'token_refresh_service.dart';
 
 typedef SessionExpiredCallback = void Function();
@@ -15,6 +22,8 @@ typedef SessionExpiredCallback = void Function();
 class ApiClient {
   ApiClient({
     required SecureStorageService secureStorage,
+    required ConnectivityService connectivity,
+    required OfflineCacheStore offlineCache,
     ErrorHandler? errorHandler,
     SessionExpiredCallback? onSessionExpired,
   })  : _errorHandler = errorHandler ?? const ErrorHandler(),
@@ -23,6 +32,7 @@ class ApiClient {
             baseUrl: EnvConfig.apiBaseUrl,
             connectTimeout: Duration(milliseconds: EnvConfig.connectTimeoutMs),
             receiveTimeout: Duration(milliseconds: EnvConfig.receiveTimeoutMs),
+            sendTimeout: Duration(milliseconds: EnvConfig.connectTimeoutMs),
             headers: {
               Headers.contentTypeHeader: ApiConstants.contentTypeJson,
               Headers.acceptHeader: ApiConstants.acceptJson,
@@ -33,14 +43,20 @@ class ApiClient {
       dio: _dio,
       secureStorage: secureStorage,
     );
-    _dio.interceptors.add(
+
+    _dio.interceptors.addAll([
+      TimeoutInterceptor(),
+      ConnectivityInterceptor(connectivity),
+      OfflineCacheInterceptor(offlineCache),
       AuthInterceptor(
         dio: _dio,
         secureStorage: secureStorage,
         tokenRefreshService: _tokenRefreshService,
         onSessionExpired: onSessionExpired,
       ),
-    );
+      RetryInterceptor(_dio),
+      DebugLoggingInterceptor(),
+    ]);
   }
 
   final Dio _dio;
@@ -131,8 +147,12 @@ class ApiClient {
 final apiClientProvider = Provider<ApiClient>((ref) {
   final secureStorage = ref.watch(secureStorageServiceProvider);
   final sessionNotifier = ref.watch(sessionExpiredNotifierProvider);
+  final connectivity = ref.watch(connectivityServiceProvider);
+  final offlineCache = ref.watch(offlineCacheStoreProvider);
   return ApiClient(
     secureStorage: secureStorage,
+    connectivity: connectivity,
+    offlineCache: offlineCache,
     onSessionExpired: sessionNotifier.notify,
   );
 });

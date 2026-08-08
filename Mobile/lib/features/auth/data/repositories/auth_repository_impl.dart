@@ -73,9 +73,26 @@ class AuthRepositoryImpl implements AuthRepository {
       final userDto = await _authApi.getCurrentUser();
       return userDto.toEntity();
     } catch (error) {
-      AppLogger.debug('Session restoration failed: $error');
-      await _secureStorage.clearTokens();
-      return null;
+      // Access may be expired — attempt one refresh, then retry profile.
+      AppLogger.debug('Session restore: access check failed, trying refresh');
+      try {
+        final tokens = await _authApi.refresh(refreshToken);
+        await _persistTokens(tokens.access, tokens.refresh);
+        final userDto = await _authApi.getCurrentUser();
+        return userDto.toEntity();
+      } catch (refreshError) {
+        AppLogger.debug('Session restoration failed: $refreshError');
+        // Keep tokens on transient network failures so auto-login can retry.
+        final message = refreshError.toString().toLowerCase();
+        final likelyNetwork = message.contains('network') ||
+            message.contains('timeout') ||
+            message.contains('connection') ||
+            message.contains('socket');
+        if (!likelyNetwork) {
+          await _secureStorage.clearTokens();
+        }
+        return null;
+      }
     }
   }
 

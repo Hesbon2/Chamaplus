@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../components/offline_banner.dart';
 import 'app_bottom_navigation.dart';
 import 'navigation_provider.dart';
 import 'quick_actions_sheet.dart';
@@ -49,7 +50,7 @@ class AppShellScaffold extends ConsumerWidget {
     final items = defaultBottomNavItems(badges: badges);
 
     return Scaffold(
-      body: navigationShell,
+      body: OfflineAwareBody(child: navigationShell),
       bottomNavigationBar: AppBottomNavigation(
         items: items,
         selectedIndex: navigationShell.currentIndex,

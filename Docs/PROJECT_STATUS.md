@@ -1,23 +1,24 @@
 # ChamaPlus — Project Status & Architecture Inventory
 
-**Version:** 1.6  
+**Version:** 1.7 (Mobile RC1)  
 **Last updated:** August 1, 2026  
 **Scope:** Backend (`Backend/`) + Flutter client (`Mobile/`)  
-**Aligned with:** `Docs/MASTER_PROJECT_SPEC.md`, `Docs/ARCHITECTURE_AUDIT.md`
+**Aligned with:** `Docs/MASTER_PROJECT_SPEC.md`, `Docs/ARCHITECTURE_AUDIT.md`, `Docs/PRODUCTION_HARDENING.md`
 
 ---
 
 ## Mobile client (Flutter) — summary
 
-Feature-complete except **production hardening**.
+**Feature-complete.** Release Candidate 1 focuses on production hardening (offline cache, network resilience, auth/session, errors, a11y, security, signing prep).
 
 | Area | Status |
 |------|--------|
-| Auth / onboarding | ✅ Shared form framework (`AppPasswordField`, `AppPhoneField`) |
-| App shell + navigation | ✅ Deep-link pending restore after auth |
-| Chamas / contributions / loans / meetings / notifications / reports | ✅ |
+| Auth / onboarding | ✅ Shared form framework; JWT refresh + session restore |
+| App shell + navigation | ✅ Offline banner; deep-link pending restore |
+| Chamas / contributions / loans / meetings / notifications / reports | ✅ + offline GET cache |
 | Settings & profile | ✅ Theme persistence, security, prefs, help, about; diagnostics debug-only |
 | Design system | ✅ Single stack under `shared/components` + `shared/forms` |
+| Production hardening | ✅ RC1 — see `Docs/PRODUCTION_HARDENING.md` |
 | Architecture audit | ✅ See `Docs/ARCHITECTURE_AUDIT.md` (Aug 2026) |
 
 ---
