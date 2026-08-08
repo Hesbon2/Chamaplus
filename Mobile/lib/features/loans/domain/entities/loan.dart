@@ -397,6 +397,45 @@ class LoanCalculation {
   }
 }
 
+/// Input for creating or updating a loan product (matches backend serializers).
+class LoanProductInput {
+  const LoanProductInput({
+    required this.name,
+    this.description,
+    required this.interestRate,
+    required this.minimumAmount,
+    required this.maximumAmount,
+    required this.maximumDuration,
+    this.gracePeriodDays = 0,
+    this.processingFee = 0,
+    this.isActive = true,
+  });
+
+  final String name;
+  final String? description;
+  final double interestRate;
+  final double minimumAmount;
+  final double maximumAmount;
+  final int maximumDuration;
+  final int gracePeriodDays;
+  final double processingFee;
+  final bool isActive;
+
+  Map<String, dynamic> toJson() {
+    return {
+      'name': name.trim(),
+      'description': description?.trim() ?? '',
+      'interest_rate': interestRate.toStringAsFixed(2),
+      'minimum_amount': minimumAmount.toStringAsFixed(2),
+      'maximum_amount': maximumAmount.toStringAsFixed(2),
+      'maximum_duration': maximumDuration,
+      'grace_period_days': gracePeriodDays,
+      'processing_fee': processingFee.toStringAsFixed(2),
+      'is_active': isActive,
+    };
+  }
+}
+
 /// Input for creating / submitting a loan application.
 class ApplyLoanInput {
   const ApplyLoanInput({

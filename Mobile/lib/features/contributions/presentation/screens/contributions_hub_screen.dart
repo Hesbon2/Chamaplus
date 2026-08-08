@@ -24,6 +24,7 @@ class ContributionsHubScreen extends ConsumerWidget {
         state: state,
         onRefresh: controller.refresh,
         onRetry: controller.retry,
+        isEmpty: (chamas) => chamas.isEmpty,
         emptyTitle: 'No chamas yet',
         emptyMessage: 'Join a chama to view and record contributions.',
         emptyIcon: Icons.groups_outlined,

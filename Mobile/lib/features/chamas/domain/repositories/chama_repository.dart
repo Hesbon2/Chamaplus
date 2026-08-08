@@ -44,4 +44,20 @@ abstract class ChamaRepository {
   Future<Membership> approveJoinRequest(String membershipId);
 
   Future<Membership> rejectJoinRequest(String membershipId);
+
+  Future<Membership> updateMembershipRole({
+    required String membershipId,
+    required String role,
+  });
+
+  Future<Membership> updateMembershipStatus({
+    required String membershipId,
+    required MembershipStatus status,
+  });
+
+  Future<List<Membership>> listPendingInvitations();
+
+  Future<Membership> acceptInvitation(String membershipId);
+
+  Future<Membership> declineInvitation(String membershipId);
 }

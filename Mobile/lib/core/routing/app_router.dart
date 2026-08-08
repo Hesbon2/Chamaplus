@@ -30,6 +30,8 @@ import '../../features/dashboard/presentation/screens/dashboard_screen.dart';
 import '../../features/loans/presentation/screens/active_loan_screen.dart';
 import '../../features/loans/presentation/screens/apply_loan_screen.dart';
 import '../../features/loans/presentation/screens/committee_voting_screen.dart';
+import '../../features/loans/presentation/screens/create_loan_product_screen.dart';
+import '../../features/loans/presentation/screens/edit_loan_product_screen.dart';
 import '../../features/loans/presentation/screens/loan_calculator_screen.dart';
 import '../../features/loans/presentation/screens/loan_dashboard_screen.dart';
 import '../../features/loans/presentation/screens/loan_details_screen.dart';
@@ -51,6 +53,7 @@ import '../../features/notifications/presentation/screens/notifications_list_scr
 import '../../features/onboarding/presentation/providers/onboarding_providers.dart';
 import '../../features/onboarding/presentation/screens/pending_approval_screen.dart';
 import '../../features/onboarding/presentation/screens/welcome_screen.dart';
+import '../../features/chamas/presentation/screens/pending_invitations_screen.dart';
 import '../../features/profile/presentation/screens/edit_profile_screen.dart';
 import '../../features/profile/presentation/screens/profile_screen.dart';
 import '../../features/reports/presentation/screens/export_center_screen.dart';
@@ -175,6 +178,7 @@ final routerNotifierProvider = Provider<RouterNotifier>((ref) {
 List<RouteBase> _chamaScopedRoutes() {
   return [
     GoRoute(
+      parentNavigatorKey: _rootNavigatorKey,
       path: 'invite',
       name: 'chama-invite-members',
       builder: (context, state) => InviteMembersScreen(
@@ -182,6 +186,7 @@ List<RouteBase> _chamaScopedRoutes() {
       ),
     ),
     GoRoute(
+      parentNavigatorKey: _rootNavigatorKey,
       path: 'members',
       name: 'chama-members',
       builder: (context, state) => MembersScreen(
@@ -189,6 +194,7 @@ List<RouteBase> _chamaScopedRoutes() {
       ),
       routes: [
         GoRoute(
+          parentNavigatorKey: _rootNavigatorKey,
           path: ':membershipId',
           name: 'member-details',
           builder: (context, state) => MemberDetailsScreen(
@@ -199,6 +205,7 @@ List<RouteBase> _chamaScopedRoutes() {
       ],
     ),
     GoRoute(
+      parentNavigatorKey: _rootNavigatorKey,
       path: 'join-requests',
       name: 'chama-join-requests',
       builder: (context, state) => JoinRequestsScreen(
@@ -206,6 +213,7 @@ List<RouteBase> _chamaScopedRoutes() {
       ),
     ),
     GoRoute(
+      parentNavigatorKey: _rootNavigatorKey,
       path: 'contributions',
       name: 'chama-contributions',
       builder: (context, state) => ContributionDashboardScreen(
@@ -213,6 +221,7 @@ List<RouteBase> _chamaScopedRoutes() {
       ),
       routes: [
         GoRoute(
+          parentNavigatorKey: _rootNavigatorKey,
           path: 'history',
           name: 'contribution-history',
           builder: (context, state) => ContributionHistoryScreen(
@@ -222,6 +231,7 @@ List<RouteBase> _chamaScopedRoutes() {
           ),
         ),
         GoRoute(
+          parentNavigatorKey: _rootNavigatorKey,
           path: 'record',
           name: 'record-contribution',
           builder: (context, state) => RecordContributionScreen(
@@ -229,6 +239,7 @@ List<RouteBase> _chamaScopedRoutes() {
           ),
         ),
         GoRoute(
+          parentNavigatorKey: _rootNavigatorKey,
           path: 'members/:memberId',
           name: 'member-contribution-summary',
           builder: (context, state) => MemberContributionSummaryScreen(
@@ -238,6 +249,7 @@ List<RouteBase> _chamaScopedRoutes() {
           ),
         ),
         GoRoute(
+          parentNavigatorKey: _rootNavigatorKey,
           path: ':contributionId',
           name: 'contribution-details',
           builder: (context, state) => ContributionDetailsScreen(
@@ -248,6 +260,7 @@ List<RouteBase> _chamaScopedRoutes() {
       ],
     ),
     GoRoute(
+      parentNavigatorKey: _rootNavigatorKey,
       path: 'contribution-cycles',
       name: 'contribution-cycles',
       builder: (context, state) => CyclesScreen(
@@ -255,6 +268,7 @@ List<RouteBase> _chamaScopedRoutes() {
       ),
       routes: [
         GoRoute(
+          parentNavigatorKey: _rootNavigatorKey,
           path: 'create',
           name: 'create-contribution-cycle',
           builder: (context, state) => CreateCycleScreen(
@@ -262,6 +276,7 @@ List<RouteBase> _chamaScopedRoutes() {
           ),
         ),
         GoRoute(
+          parentNavigatorKey: _rootNavigatorKey,
           path: ':cycleId',
           name: 'cycle-details',
           builder: (context, state) => CycleDetailsScreen(
@@ -272,6 +287,7 @@ List<RouteBase> _chamaScopedRoutes() {
       ],
     ),
     GoRoute(
+      parentNavigatorKey: _rootNavigatorKey,
       path: 'loans',
       name: 'chama-loans',
       builder: (context, state) => LoanDashboardScreen(
@@ -279,6 +295,7 @@ List<RouteBase> _chamaScopedRoutes() {
       ),
       routes: [
         GoRoute(
+          parentNavigatorKey: _rootNavigatorKey,
           path: 'products',
           name: 'loan-products',
           builder: (context, state) => LoanProductsScreen(
@@ -286,16 +303,37 @@ List<RouteBase> _chamaScopedRoutes() {
           ),
           routes: [
             GoRoute(
+              parentNavigatorKey: _rootNavigatorKey,
+              path: 'create',
+              name: 'create-loan-product',
+              builder: (context, state) => CreateLoanProductScreen(
+                chamaId: state.pathParameters['chamaId']!,
+              ),
+            ),
+            GoRoute(
+              parentNavigatorKey: _rootNavigatorKey,
               path: ':productId',
               name: 'loan-product-details',
               builder: (context, state) => LoanProductDetailsScreen(
                 chamaId: state.pathParameters['chamaId']!,
                 productId: state.pathParameters['productId']!,
               ),
+              routes: [
+                GoRoute(
+                  parentNavigatorKey: _rootNavigatorKey,
+                  path: 'edit',
+                  name: 'edit-loan-product',
+                  builder: (context, state) => EditLoanProductScreen(
+                    chamaId: state.pathParameters['chamaId']!,
+                    productId: state.pathParameters['productId']!,
+                  ),
+                ),
+              ],
             ),
           ],
         ),
         GoRoute(
+          parentNavigatorKey: _rootNavigatorKey,
           path: 'calculator',
           name: 'loan-calculator',
           builder: (context, state) => LoanCalculatorScreen(
@@ -303,6 +341,7 @@ List<RouteBase> _chamaScopedRoutes() {
           ),
         ),
         GoRoute(
+          parentNavigatorKey: _rootNavigatorKey,
           path: 'apply',
           name: 'apply-loan',
           builder: (context, state) => ApplyLoanScreen(
@@ -311,6 +350,7 @@ List<RouteBase> _chamaScopedRoutes() {
           ),
         ),
         GoRoute(
+          parentNavigatorKey: _rootNavigatorKey,
           path: 'history',
           name: 'loan-history',
           builder: (context, state) => LoanHistoryScreen(
@@ -318,6 +358,7 @@ List<RouteBase> _chamaScopedRoutes() {
           ),
         ),
         GoRoute(
+          parentNavigatorKey: _rootNavigatorKey,
           path: 'applications/:applicationId',
           name: 'loan-details',
           builder: (context, state) => LoanDetailsScreen(
@@ -326,6 +367,7 @@ List<RouteBase> _chamaScopedRoutes() {
           ),
           routes: [
             GoRoute(
+              parentNavigatorKey: _rootNavigatorKey,
               path: 'vote',
               name: 'loan-committee-voting',
               builder: (context, state) => CommitteeVotingScreen(
@@ -334,6 +376,7 @@ List<RouteBase> _chamaScopedRoutes() {
               ),
             ),
             GoRoute(
+              parentNavigatorKey: _rootNavigatorKey,
               path: 'repayments',
               name: 'loan-repayment-history',
               builder: (context, state) => RepaymentHistoryScreen(
@@ -342,6 +385,7 @@ List<RouteBase> _chamaScopedRoutes() {
               ),
             ),
             GoRoute(
+              parentNavigatorKey: _rootNavigatorKey,
               path: 'active',
               name: 'active-loan',
               builder: (context, state) => ActiveLoanScreen(
@@ -354,6 +398,7 @@ List<RouteBase> _chamaScopedRoutes() {
       ],
     ),
     GoRoute(
+      parentNavigatorKey: _rootNavigatorKey,
       path: 'meetings',
       name: 'chama-meetings',
       builder: (context, state) => GovernanceDashboardScreen(
@@ -361,6 +406,7 @@ List<RouteBase> _chamaScopedRoutes() {
       ),
       routes: [
         GoRoute(
+          parentNavigatorKey: _rootNavigatorKey,
           path: 'list',
           name: 'meetings-list',
           builder: (context, state) => MeetingsListScreen(
@@ -368,6 +414,7 @@ List<RouteBase> _chamaScopedRoutes() {
           ),
         ),
         GoRoute(
+          parentNavigatorKey: _rootNavigatorKey,
           path: 'upcoming',
           name: 'upcoming-meetings',
           builder: (context, state) => MeetingsListScreen(
@@ -376,6 +423,7 @@ List<RouteBase> _chamaScopedRoutes() {
           ),
         ),
         GoRoute(
+          parentNavigatorKey: _rootNavigatorKey,
           path: 'schedule',
           name: 'schedule-meeting',
           builder: (context, state) => ScheduleMeetingScreen(
@@ -383,6 +431,7 @@ List<RouteBase> _chamaScopedRoutes() {
           ),
         ),
         GoRoute(
+          parentNavigatorKey: _rootNavigatorKey,
           path: ':meetingId',
           name: 'meeting-details',
           builder: (context, state) => MeetingDetailsScreen(
@@ -391,6 +440,7 @@ List<RouteBase> _chamaScopedRoutes() {
           ),
           routes: [
             GoRoute(
+              parentNavigatorKey: _rootNavigatorKey,
               path: 'attendance',
               name: 'meeting-attendance',
               builder: (context, state) => MeetingAttendanceScreen(
@@ -399,6 +449,7 @@ List<RouteBase> _chamaScopedRoutes() {
               ),
             ),
             GoRoute(
+              parentNavigatorKey: _rootNavigatorKey,
               path: 'minutes',
               name: 'meeting-minutes',
               builder: (context, state) => MeetingMinutesScreen(
@@ -407,6 +458,7 @@ List<RouteBase> _chamaScopedRoutes() {
               ),
             ),
             GoRoute(
+              parentNavigatorKey: _rootNavigatorKey,
               path: 'action-items',
               name: 'meeting-action-items',
               builder: (context, state) => MeetingActionItemsScreen(
@@ -419,6 +471,7 @@ List<RouteBase> _chamaScopedRoutes() {
       ],
     ),
     GoRoute(
+      parentNavigatorKey: _rootNavigatorKey,
       path: 'reports',
       name: 'chama-reports',
       builder: (context, state) => ReportsHomeScreen(
@@ -426,6 +479,7 @@ List<RouteBase> _chamaScopedRoutes() {
       ),
       routes: [
         GoRoute(
+          parentNavigatorKey: _rootNavigatorKey,
           path: 'monthly',
           name: 'monthly-report',
           builder: (context, state) => MonthlyReportScreen(
@@ -433,6 +487,7 @@ List<RouteBase> _chamaScopedRoutes() {
           ),
         ),
         GoRoute(
+          parentNavigatorKey: _rootNavigatorKey,
           path: 'financial',
           name: 'financial-report',
           builder: (context, state) => FinancialReportScreen(
@@ -440,6 +495,7 @@ List<RouteBase> _chamaScopedRoutes() {
           ),
         ),
         GoRoute(
+          parentNavigatorKey: _rootNavigatorKey,
           path: 'member-statement',
           name: 'member-statement',
           builder: (context, state) => MemberStatementScreen(
@@ -448,6 +504,7 @@ List<RouteBase> _chamaScopedRoutes() {
           ),
         ),
         GoRoute(
+          parentNavigatorKey: _rootNavigatorKey,
           path: 'export',
           name: 'export-center',
           builder: (context, state) => ExportCenterScreen(
@@ -509,6 +566,12 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         path: RoutePaths.pendingApproval,
         name: 'pending-approval',
         builder: (context, state) => const PendingApprovalScreen(),
+      ),
+      GoRoute(
+        path: RoutePaths.pendingInvitations,
+        name: 'pending-invitations',
+        parentNavigatorKey: _rootNavigatorKey,
+        builder: (context, state) => const PendingInvitationsScreen(),
       ),
 
       /// Persistent bottom-nav shell (Home / Chamas / Loans / Alerts / More).

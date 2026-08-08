@@ -11,6 +11,8 @@ class FakeChamaApi implements ChamaRemoteDataSource {
   MembersPageDto activeMembers = const MembersPageDto(count: 0, results: []);
   MembersPageDto pendingMembers = const MembersPageDto(count: 0, results: []);
   MembershipDto? updatedMembership;
+  String? lastRolePatch;
+  String? lastStatusPatch;
   Object? error;
 
   @override
@@ -67,7 +69,43 @@ class FakeChamaApi implements ChamaRemoteDataSource {
     required String membershipId,
     required String status,
   }) async {
+    lastStatusPatch = status;
     return updatedMembership!;
+  }
+
+  @override
+  Future<MembershipDto> updateMembershipRole({
+    required String membershipId,
+    required String role,
+  }) async {
+    lastRolePatch = role;
+    return updatedMembership!;
+  }
+
+  List<MembershipDto> pendingInvitations = const [];
+  String? lastAcceptedId;
+  String? lastDeclinedId;
+
+  @override
+  Future<List<MembershipDto>> listPendingInvitations() async {
+    if (error != null) throw error!;
+    return pendingInvitations;
+  }
+
+  @override
+  Future<MembershipDto> acceptInvitation(String membershipId) async {
+    if (error != null) throw error!;
+    lastAcceptedId = membershipId;
+    return updatedMembership ??
+        sampleMembership(id: membershipId, status: 'active');
+  }
+
+  @override
+  Future<MembershipDto> declineInvitation(String membershipId) async {
+    if (error != null) throw error!;
+    lastDeclinedId = membershipId;
+    return updatedMembership ??
+        sampleMembership(id: membershipId, status: 'left');
   }
 }
 
@@ -159,4 +197,93 @@ void main() {
     final result = await repository.rejectJoinRequest('m3');
     expect(result.status, MembershipStatus.left);
   });
+
+  test('updateMembershipRole patches role slug', () async {
+    api.updatedMembership = sampleMembership(
+      id: 'm2',
+      roleSlug: 'treasurer',
+      roleName: 'Treasurer',
+    );
+    final result = await repository.updateMembershipRole(
+      membershipId: 'm2',
+      role: 'treasurer',
+    );
+    expect(api.lastRolePatch, 'treasurer');
+    expect(result.role.slug, 'treasurer');
+  });
+
+  test('updateMembershipStatus patches status', () async {
+    api.updatedMembership = sampleMembership(id: 'm2', status: 'suspended');
+    final result = await repository.updateMembershipStatus(
+      membershipId: 'm2',
+      status: MembershipStatus.suspended,
+    );
+    expect(api.lastStatusPatch, 'suspended');
+    expect(result.status, MembershipStatus.suspended);
+  });
+
+  test('listPendingInvitations maps chama context', () async {
+    api.pendingInvitations = [
+      MembershipDto(
+        id: 'inv1',
+        user: const MemberUserDto(
+          id: 'u1',
+          phoneNumber: '+254712345678',
+          firstName: 'Jane',
+          lastName: 'Doe',
+        ),
+        role: const MemberRoleDto(
+          id: 'r1',
+          slug: 'member',
+          name: 'Member',
+        ),
+        status: 'pending',
+        createdAt: '2026-08-01T10:00:00+03:00',
+        chamaId: 'c1',
+        chamaName: 'Unity Chama',
+      ),
+    ];
+    final list = await repository.listPendingInvitations();
+    expect(list, hasLength(1));
+    expect(list.first.chamaId, 'c1');
+    expect(list.first.chamaName, 'Unity Chama');
+    expect(list.first.status, MembershipStatus.pending);
+  });
+
+  test('acceptInvitation and declineInvitation call API', () async {
+    api.updatedMembership = MembershipDto(
+      id: 'inv1',
+      user: const MemberUserDto(
+        id: 'u1',
+        phoneNumber: '+254712345678',
+        firstName: 'Jane',
+        lastName: 'Doe',
+      ),
+      role: const MemberRoleDto(id: 'r1', slug: 'member', name: 'Member'),
+      status: 'active',
+      chamaId: 'c1',
+      chamaName: 'Unity Chama',
+    );
+    final accepted = await repository.acceptInvitation('inv1');
+    expect(api.lastAcceptedId, 'inv1');
+    expect(accepted.status, MembershipStatus.active);
+
+    api.updatedMembership = MembershipDto(
+      id: 'inv2',
+      user: const MemberUserDto(
+        id: 'u1',
+        phoneNumber: '+254712345678',
+        firstName: 'Jane',
+        lastName: 'Doe',
+      ),
+      role: const MemberRoleDto(id: 'r1', slug: 'member', name: 'Member'),
+      status: 'left',
+      chamaId: 'c1',
+      chamaName: 'Unity Chama',
+    );
+    final declined = await repository.declineInvitation('inv2');
+    expect(api.lastDeclinedId, 'inv2');
+    expect(declined.status, MembershipStatus.left);
+  });
 }
+

@@ -17,6 +17,22 @@ abstract class LoanRemoteDataSource {
     required String productId,
   });
 
+  Future<LoanProductDto> createProduct({
+    required String chamaId,
+    required Map<String, dynamic> body,
+  });
+
+  Future<LoanProductDto> updateProduct({
+    required String chamaId,
+    required String productId,
+    required Map<String, dynamic> body,
+  });
+
+  Future<void> deleteProduct({
+    required String chamaId,
+    required String productId,
+  });
+
   Future<LoanApplicationsPageDto> listApplications({
     required String chamaId,
     String? search,
@@ -141,6 +157,48 @@ class LoanApi implements LoanRemoteDataSource {
       ApiConstants.loanProductDetail(chamaId, productId),
     );
     return LoanProductDto.fromJson(_unwrapMap(response.data));
+  }
+
+  @override
+  Future<LoanProductDto> createProduct({
+    required String chamaId,
+    required Map<String, dynamic> body,
+  }) async {
+    final response = await _apiClient.post<Map<String, dynamic>>(
+      ApiConstants.loanProducts(chamaId),
+      data: body,
+    );
+    return LoanProductDto.fromJson(_unwrapMap(response.data));
+  }
+
+  @override
+  Future<LoanProductDto> updateProduct({
+    required String chamaId,
+    required String productId,
+    required Map<String, dynamic> body,
+  }) async {
+    final response = await _apiClient.patch<Map<String, dynamic>>(
+      ApiConstants.loanProductDetail(chamaId, productId),
+      data: body,
+    );
+    return LoanProductDto.fromJson(_unwrapMap(response.data));
+  }
+
+  @override
+  Future<void> deleteProduct({
+    required String chamaId,
+    required String productId,
+  }) async {
+    final response = await _apiClient.delete<Map<String, dynamic>>(
+      ApiConstants.loanProductDetail(chamaId, productId),
+    );
+    final envelope = ApiResponse<Object?>.fromJson(
+      response.data ?? {},
+      (data) => data,
+    );
+    if (!envelope.success) {
+      throw ServerException(message: envelope.message);
+    }
   }
 
   @override

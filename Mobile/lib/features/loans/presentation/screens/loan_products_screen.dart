@@ -7,7 +7,9 @@ import 'package:go_router/go_router.dart';
 import '../../../../core/routing/route_paths.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../shared/api_state.dart';
+import '../../../../shared/components/components.dart';
 import '../../../../shared/forms/forms.dart';
+import '../../../../shared/navigation/navigation.dart';
 import '../../domain/entities/loan.dart';
 import '../providers/loan_providers.dart';
 import '../widgets/loan_tiles.dart';
@@ -48,9 +50,19 @@ class _LoanProductsScreenState extends ConsumerState<LoanProductsScreen> {
     final state = ref.watch(loanProductsControllerProvider(widget.chamaId));
     final controller =
         ref.read(loanProductsControllerProvider(widget.chamaId).notifier);
+    final role = ref.watch(currentMemberRoleProvider);
+    final canCreate = role.canCreateLoanProduct;
 
     return Scaffold(
       appBar: AppBar(title: const Text('Loan products')),
+      floatingActionButton: canCreate
+          ? FloatingActionButton.extended(
+              onPressed: () =>
+                  context.push(RoutePaths.createLoanProduct(widget.chamaId)),
+              icon: const Icon(Icons.add),
+              label: const Text('Create'),
+            )
+          : null,
       body: Column(
         children: [
           Padding(
@@ -97,9 +109,20 @@ class _LoanProductsScreenState extends ConsumerState<LoanProductsScreen> {
               state: state,
               onRefresh: controller.refresh,
               onRetry: controller.retry,
-              emptyTitle: 'No products found',
-              emptyMessage: 'Ask your chairperson to create a loan product.',
-              emptyIcon: Icons.inventory_2_outlined,
+              empty: EmptyState(
+                title: canCreate
+                    ? 'No loan products yet'
+                    : 'No loan products available',
+                message: canCreate
+                    ? 'Create a product so members can apply for loans.'
+                    : 'Your Chama has not created any loan products yet.',
+                icon: Icons.inventory_2_outlined,
+                actionLabel: canCreate ? 'Create Loan Product' : null,
+                onAction: canCreate
+                    ? () => context
+                        .push(RoutePaths.createLoanProduct(widget.chamaId))
+                    : null,
+              ),
               builder: (context, products) {
                 return ListView.separated(
                   physics: const AlwaysScrollableScrollPhysics(),

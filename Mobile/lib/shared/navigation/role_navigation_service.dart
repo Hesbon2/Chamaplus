@@ -48,6 +48,20 @@ enum AppMemberRole {
       this == AppMemberRole.secretary ||
       this == AppMemberRole.chairperson ||
       this == AppMemberRole.committeeMember;
+
+  /// Chairperson or treasurer may create loan products (backend POST).
+  bool get canCreateLoanProduct =>
+      this == AppMemberRole.chairperson || this == AppMemberRole.treasurer;
+
+  /// Chairperson may update / delete loan products (backend PATCH/DELETE).
+  bool get canManageLoanProducts => this == AppMemberRole.chairperson;
+
+  /// Chairperson or secretary may invite members (backend `IsChamaOfficial`).
+  bool get canInviteMembers =>
+      this == AppMemberRole.chairperson || this == AppMemberRole.secretary;
+
+  /// Chairperson may change roles / membership status / approve join requests.
+  bool get canManageMemberships => this == AppMemberRole.chairperson;
 }
 
 /// A role-aware navigation / FAB quick action.
@@ -123,7 +137,7 @@ class RoleNavigationService {
           ),
         );
       }
-      if (role.isCommittee) {
+      if (role.canInviteMembers) {
         actions.add(
           NavQuickAction(
             id: 'invite_members',
@@ -133,6 +147,8 @@ class RoleNavigationService {
             route: RoutePaths.chamaInviteMembers(chamaId),
           ),
         );
+      }
+      if (role.canManageMemberships) {
         actions.add(
           NavQuickAction(
             id: 'join_requests',
@@ -185,23 +201,33 @@ class RoleNavigationService {
   }
 
   /// Destinations listed on the More tab.
-  static List<NavQuickAction> moreMenuActions() {
-    return const [
+  ///
+  /// When [chamaId] is set (active chama from dashboard), meetings /
+  /// contributions / reports deep-link into that chama instead of the
+  /// generic picker hubs — avoids a blank screen when hubs push into
+  /// shell-nested routes from the root navigator.
+  static List<NavQuickAction> moreMenuActions({String? chamaId}) {
+    final hasChama = chamaId != null && chamaId.isNotEmpty;
+    return [
       NavQuickAction(
         id: 'meetings',
         label: 'Meetings & governance',
         subtitle: 'Schedules, attendance, minutes',
         icon: Icons.event_outlined,
-        route: RoutePaths.meetings,
+        route: hasChama
+            ? RoutePaths.chamaMeetings(chamaId)
+            : RoutePaths.meetings,
       ),
       NavQuickAction(
         id: 'contributions',
         label: 'Contributions',
         subtitle: 'Cycles, payments, history',
         icon: Icons.payments_outlined,
-        route: RoutePaths.contributions,
+        route: hasChama
+            ? RoutePaths.chamaContributions(chamaId)
+            : RoutePaths.contributions,
       ),
-      NavQuickAction(
+      const NavQuickAction(
         id: 'profile',
         label: 'Profile',
         subtitle: 'Your account',
@@ -213,9 +239,11 @@ class RoleNavigationService {
         label: 'Reports',
         subtitle: 'Analytics, statements & exports',
         icon: Icons.assessment_outlined,
-        route: RoutePaths.reports,
+        route: hasChama
+            ? RoutePaths.chamaReports(chamaId)
+            : RoutePaths.reports,
       ),
-      NavQuickAction(
+      const NavQuickAction(
         id: 'settings',
         label: 'Settings',
         subtitle: 'Profile, security & preferences',

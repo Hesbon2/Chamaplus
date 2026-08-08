@@ -74,6 +74,31 @@ class _EmptyChamaRepo implements ChamaRepository {
   @override
   Future<Membership> rejectJoinRequest(String membershipId) =>
       throw UnimplementedError();
+
+  @override
+  Future<Membership> updateMembershipRole({
+    required String membershipId,
+    required String role,
+  }) =>
+      throw UnimplementedError();
+
+  @override
+  Future<Membership> updateMembershipStatus({
+    required String membershipId,
+    required MembershipStatus status,
+  }) =>
+      throw UnimplementedError();
+
+  @override
+  Future<List<Membership>> listPendingInvitations() async => const [];
+
+  @override
+  Future<Membership> acceptInvitation(String membershipId) =>
+      throw UnimplementedError();
+
+  @override
+  Future<Membership> declineInvitation(String membershipId) =>
+      throw UnimplementedError();
 }
 
 class _StubAuthRepository implements AuthRepository {
@@ -150,6 +175,12 @@ void main() {
           builder: (context, state) => const SizedBox(),
         ),
         GoRoute(
+          path: '/pending-invitations',
+          builder: (context, state) => const Scaffold(
+            body: Text('Pending invitations screen'),
+          ),
+        ),
+        GoRoute(
           path: '/profile',
           builder: (context, state) => const SizedBox(),
         ),
@@ -175,5 +206,10 @@ void main() {
     expect(find.text('Welcome, Ada'), findsOneWidget);
     expect(find.text('Create a Chama'), findsOneWidget);
     expect(find.text('Join a Chama'), findsOneWidget);
+    expect(find.text('View pending invitations'), findsOneWidget);
+
+    await tester.tap(find.text('View pending invitations'));
+    await tester.pumpAndSettle();
+    expect(find.text('Pending invitations screen'), findsOneWidget);
   });
 }

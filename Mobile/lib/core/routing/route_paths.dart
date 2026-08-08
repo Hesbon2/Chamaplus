@@ -11,6 +11,7 @@ class RoutePaths {
   static const String createChama = '/create-chama';
   static const String joinChama = '/join-chama';
   static const String pendingApproval = '/pending-approval';
+  static const String pendingInvitations = '/pending-invitations';
 
   static const String chamas = '/chamas';
   static const String contributions = '/contributions';
@@ -77,8 +78,12 @@ class RoutePaths {
   static String chamaLoans(String chamaId) => '/chamas/$chamaId/loans';
   static String loanProducts(String chamaId) =>
       '/chamas/$chamaId/loans/products';
+  static String createLoanProduct(String chamaId) =>
+      '/chamas/$chamaId/loans/products/create';
   static String loanProductDetails(String chamaId, String productId) =>
       '/chamas/$chamaId/loans/products/$productId';
+  static String editLoanProduct(String chamaId, String productId) =>
+      '/chamas/$chamaId/loans/products/$productId/edit';
   static String loanCalculator(String chamaId) =>
       '/chamas/$chamaId/loans/calculator';
   static String applyLoan(String chamaId, {String? productId}) {
@@ -145,6 +150,7 @@ class RoutePaths {
     createChama,
     joinChama,
     pendingApproval,
+    pendingInvitations,
     profile,
     editProfile,
     settings,

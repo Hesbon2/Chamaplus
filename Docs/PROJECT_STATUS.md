@@ -1,7 +1,7 @@
 # ChamaPlus — Project Status & Architecture Inventory
 
-**Version:** 1.7 (Mobile RC1)  
-**Last updated:** August 1, 2026  
+**Version:** 1.9 (Mobile RC1)  
+**Last updated:** August 8, 2026  
 **Scope:** Backend (`Backend/`) + Flutter client (`Mobile/`)  
 **Aligned with:** `Docs/MASTER_PROJECT_SPEC.md`, `Docs/ARCHITECTURE_AUDIT.md`, `Docs/PRODUCTION_HARDENING.md`
 
@@ -16,6 +16,9 @@
 | Auth / onboarding | ✅ Shared form framework; JWT refresh + session restore |
 | App shell + navigation | ✅ Offline banner; deep-link pending restore |
 | Chamas / contributions / loans / meetings / notifications / reports | ✅ + offline GET cache |
+| Loan product management (mobile) | ✅ Create/edit/delete via existing backend CRUD; role-aware UI |
+| Membership & RBAC (mobile) | ✅ Role PATCH, status management, invite/join-request UI gated to backend permissions |
+| Pending invitations (invitee) | ✅ List/accept/decline + onboarding entry from Welcome |
 | Settings & profile | ✅ Theme persistence, security, prefs, help, about; diagnostics debug-only |
 | Design system | ✅ Single stack under `shared/components` + `shared/forms` |
 | Production hardening | ✅ RC1 — see `Docs/PRODUCTION_HARDENING.md` |
@@ -403,7 +406,7 @@ Chamaplus/
 |---------|-----|---------|
 | `AuthService` | accounts | `register_user`, `login`, `refresh_token`, `logout`, `update_profile`, `change_password` |
 | `ChamaService` | chamas | `create_chama`, `list_chamas_for_user`, `get_chama`, `update_chama`, `archive_chama` |
-| `MembershipService` | memberships | `get_membership`, `get_user_membership`, `user_is_active_member`, `user_has_role`, `invite_member`, `join_chama`, `list_members`, `update_role`, `update_status` |
+| `MembershipService` | memberships | `get_membership`, `get_user_membership`, `user_is_active_member`, `user_has_role`, `invite_member`, `join_chama`, `list_members`, `list_pending_invitations`, `accept_invitation`, `decline_invitation`, `update_role`, `update_status` |
 | `ContributionCycleService` | contributions | `create_cycle`, `list_cycles`, `get_cycle`, `update_cycle`, `close_cycle`, `delete_cycle`, `get_chama` |
 | `ContributionService` | contributions | `record_contribution`, `list_contributions`, `get_contribution` |
 | `LoanProductService` | loans | `create_product`, `list_products`, `get_product`, `update_product`, `delete_product` |
@@ -453,6 +456,9 @@ Chamaplus/
 | `InviteMemberView` | memberships | POST | `EnvelopeAPIView` |
 | `JoinChamaView` | memberships | POST | `EnvelopeAPIView` |
 | `MemberListView` | memberships | GET | `EnvelopeAPIView` |
+| `PendingInvitationsListView` | memberships | GET | `EnvelopeAPIView` |
+| `MembershipAcceptInvitationView` | memberships | POST | `EnvelopeAPIView` |
+| `MembershipDeclineInvitationView` | memberships | POST | `EnvelopeAPIView` |
 | `MembershipRoleUpdateView` | memberships | PATCH | `EnvelopeAPIView` |
 | `MembershipStatusUpdateView` | memberships | PATCH | `EnvelopeAPIView` |
 | `ContributionCycleListCreateView` | contributions | GET, POST | `EnvelopeAPIView` |
@@ -528,8 +534,13 @@ All views use class-based API views with `@extend_schema` OpenAPI annotations.
 
 | Method | Path | Auth | View |
 |--------|------|------|------|
+| GET | `/api/v1/memberships/pending/` | JWT (own pending only) | `PendingInvitationsListView` |
+| POST | `/api/v1/memberships/{id}/accept/` | JWT (invitee owner) | `MembershipAcceptInvitationView` |
+| POST | `/api/v1/memberships/{id}/decline/` | JWT (invitee owner) | `MembershipDeclineInvitationView` |
 | PATCH | `/api/v1/memberships/{id}/role/` | JWT + Chairperson | `MembershipRoleUpdateView` |
 | PATCH | `/api/v1/memberships/{id}/status/` | JWT + Chairperson | `MembershipStatusUpdateView` |
+
+**Invitee decline rule:** There is no dedicated `declined` status. Decline sets membership status to `left`. Chairperson/secretary may re-invite afterward (pending is restored). Inviter metadata is not stored on `Membership` (no `invited_by` field). Invitation notifications are not dispatched yet.
 
 ### 7.7 API v1 — Contribution Cycles (`/api/v1/chamas/{chama_id}/contribution-cycles/`)
 

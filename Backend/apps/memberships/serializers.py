@@ -23,6 +23,13 @@ class UserSummarySerializer(serializers.ModelSerializer):
         read_only_fields = fields
 
 
+class ChamaSummarySerializer(serializers.Serializer):
+    """Minimal chama payload for invitation / membership context."""
+
+    id = serializers.UUIDField(read_only=True)
+    name = serializers.CharField(read_only=True)
+
+
 class MembershipSerializer(serializers.ModelSerializer):
     user = UserSummarySerializer(read_only=True)
     role = RoleSummarySerializer(read_only=True)
@@ -34,6 +41,28 @@ class MembershipSerializer(serializers.ModelSerializer):
             "user",
             "role",
             "status",
+            "joined_at",
+            "created_at",
+            "updated_at",
+        )
+        read_only_fields = fields
+
+
+class PendingInvitationSerializer(serializers.ModelSerializer):
+    """Pending membership owned by the authenticated user, with chama context."""
+
+    user = UserSummarySerializer(read_only=True)
+    role = RoleSummarySerializer(read_only=True)
+    chama = ChamaSummarySerializer(read_only=True)
+
+    class Meta:
+        model = Membership
+        fields = (
+            "id",
+            "user",
+            "role",
+            "status",
+            "chama",
             "joined_at",
             "created_at",
             "updated_at",

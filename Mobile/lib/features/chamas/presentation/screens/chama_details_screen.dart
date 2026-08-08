@@ -10,6 +10,7 @@ import '../../../../core/utils/safe_clipboard.dart';
 import '../../../../core/widgets/app_snackbar.dart';
 import '../../../../shared/api_state.dart';
 import '../../../../shared/components/components.dart';
+import '../../../../shared/navigation/navigation.dart';
 import '../../domain/entities/chama.dart';
 import '../providers/chama_providers.dart';
 
@@ -41,18 +42,23 @@ class ChamaDetailsScreen extends ConsumerWidget {
   }
 }
 
-class _DetailsBody extends StatelessWidget {
+class _DetailsBody extends ConsumerWidget {
   const _DetailsBody({required this.details});
 
   final ChamaDetails details;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final chama = details.chama;
     final currency = chama.currency;
+    final role = ref.watch(currentMemberRoleProvider);
+    final canInvite = role.canInviteMembers;
+    final canManageMemberships = role.canManageMemberships;
 
-    return ListView(
+    return SingleChildScrollView(
       padding: const EdgeInsets.all(AppSpacing.md),
+      child: Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         AppCard(
           child: Column(
@@ -158,8 +164,10 @@ class _DetailsBody extends StatelessWidget {
                 subtitle: 'Join requests',
                 icon: Icons.person_add_alt_1_outlined,
                 accentColor: Theme.of(context).colorScheme.secondary,
-                onTap: () =>
-                    context.push(RoutePaths.chamaJoinRequests(chama.id)),
+                onTap: canManageMemberships
+                    ? () =>
+                        context.push(RoutePaths.chamaJoinRequests(chama.id))
+                    : null,
               ),
             ),
           ],
@@ -255,29 +263,34 @@ class _DetailsBody extends StatelessWidget {
             ),
           ),
         const SizedBox(height: AppSpacing.md),
-        ActionButton(
-          label: 'Invite members',
-          icon: Icons.person_add_alt_1_outlined,
-          onPressed: () =>
-              context.push(RoutePaths.chamaInviteMembers(chama.id)),
-        ),
-        const SizedBox(height: AppSpacing.sm),
+        if (canInvite) ...[
+          ActionButton(
+            label: 'Invite members',
+            icon: Icons.person_add_alt_1_outlined,
+            onPressed: () =>
+                context.push(RoutePaths.chamaInviteMembers(chama.id)),
+          ),
+          const SizedBox(height: AppSpacing.sm),
+        ],
         ActionButton(
           label: 'View members',
           icon: Icons.people_outline,
           variant: ActionButtonVariant.secondary,
           onPressed: () => context.push(RoutePaths.chamaMembers(chama.id)),
         ),
-        const SizedBox(height: AppSpacing.sm),
-        ActionButton(
-          label: 'Join requests',
-          variant: ActionButtonVariant.secondary,
-          icon: Icons.inbox_outlined,
-          onPressed: () =>
-              context.push(RoutePaths.chamaJoinRequests(chama.id)),
-        ),
+        if (canManageMemberships) ...[
+          const SizedBox(height: AppSpacing.sm),
+          ActionButton(
+            label: 'Join requests',
+            variant: ActionButtonVariant.secondary,
+            icon: Icons.inbox_outlined,
+            onPressed: () =>
+                context.push(RoutePaths.chamaJoinRequests(chama.id)),
+          ),
+        ],
         const SizedBox(height: AppSpacing.lg),
       ],
+      ),
     );
   }
 

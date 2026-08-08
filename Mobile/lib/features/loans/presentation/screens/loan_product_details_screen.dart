@@ -4,13 +4,15 @@ import 'package:go_router/go_router.dart';
 
 import '../../../../core/routing/route_paths.dart';
 import '../../../../core/theme/app_spacing.dart';
+import '../../../../core/widgets/app_snackbar.dart';
 import '../../../../shared/api_state.dart';
 import '../../../../shared/components/components.dart';
+import '../../../../shared/navigation/navigation.dart';
 import '../../domain/entities/loan.dart';
 import '../providers/loan_providers.dart';
 import '../utils/loan_ui_mapper.dart';
 
-/// Details for a single loan product with apply CTA.
+/// Details for a single loan product with role-aware actions.
 class LoanProductDetailsScreen extends ConsumerWidget {
   const LoanProductDetailsScreen({
     super.key,
@@ -21,22 +23,71 @@ class LoanProductDetailsScreen extends ConsumerWidget {
   final String chamaId;
   final String productId;
 
+  Future<void> _delete(BuildContext context, WidgetRef ref) async {
+    final confirmed = await showAppConfirmationDialog(
+      context: context,
+      title: 'Delete loan product?',
+      message:
+          'This permanently removes the product. Existing applications are not deleted.',
+      confirmLabel: 'Delete',
+      isDestructive: true,
+    );
+    if (!confirmed) return;
+
+    final ok = await ref
+        .read(manageLoanProductControllerProvider.notifier)
+        .delete(chamaId: chamaId, productId: productId);
+    if (!context.mounted) return;
+
+    if (!ok) {
+      final err = ref.read(manageLoanProductControllerProvider).errorMessage;
+      AppSnackbar.error(
+        context,
+        (err == null || err.isEmpty)
+            ? 'Could not delete loan product.'
+            : err.replaceFirst(RegExp(r'^Exception:\s*'), ''),
+      );
+      return;
+    }
+
+    ref.invalidate(loanProductsControllerProvider(chamaId));
+    ref.invalidate(activeLoanProductsProvider(chamaId));
+    AppSnackbar.success(context, 'Loan product deleted.');
+    context.go(RoutePaths.loanProducts(chamaId));
+  }
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final args = (chamaId: chamaId, productId: productId);
     final state = ref.watch(loanProductDetailsProvider(args));
     final controller = ref.read(loanProductDetailsProvider(args).notifier);
+    final role = ref.watch(currentMemberRoleProvider);
+    final manageState = ref.watch(manageLoanProductControllerProvider);
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Product details')),
+      appBar: AppBar(
+        title: const Text('Product details'),
+        actions: [
+          if (role.canManageLoanProducts)
+            IconButton(
+              tooltip: 'Edit',
+              icon: const Icon(Icons.edit_outlined),
+              onPressed: () => context.push(
+                RoutePaths.editLoanProduct(chamaId, productId),
+              ),
+            ),
+        ],
+      ),
       body: ApiStateBuilder<LoanProduct>(
         state: state,
         onRefresh: controller.refresh,
         onRetry: controller.retry,
         builder: (context, product) {
-          return ListView(
+          return SingleChildScrollView(
             padding: const EdgeInsets.all(AppSpacing.md),
-            children: [
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
               AppCard(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -69,6 +120,8 @@ class LoanProductDetailsScreen extends ConsumerWidget {
                 ),
               ),
               const SizedBox(height: AppSpacing.md),
+              const SectionHeader(title: 'Terms'),
+              const SizedBox(height: AppSpacing.sm),
               AppCard(
                 child: Column(
                   children: [
@@ -78,14 +131,10 @@ class LoanProductDetailsScreen extends ConsumerWidget {
                       leading: const Icon(Icons.percent),
                     ),
                     InfoTile(
-                      title: 'Minimum amount',
-                      subtitle: LoanFormatters.money(product.minimumAmount),
-                      leading: const Icon(Icons.arrow_downward),
-                    ),
-                    InfoTile(
-                      title: 'Maximum amount',
-                      subtitle: LoanFormatters.money(product.maximumAmount),
-                      leading: const Icon(Icons.arrow_upward),
+                      title: 'Amount range',
+                      subtitle:
+                          '${LoanFormatters.money(product.minimumAmount)} – ${LoanFormatters.money(product.maximumAmount)}',
+                      leading: const Icon(Icons.payments_outlined),
                     ),
                     InfoTile(
                       title: 'Maximum duration',
@@ -116,19 +165,18 @@ class LoanProductDetailsScreen extends ConsumerWidget {
                 ),
               ),
               const SizedBox(height: AppSpacing.lg),
-              ActionButton(
-                label: 'Apply for this loan',
-                icon: Icons.request_quote_outlined,
-                onPressed: product.isActive
-                    ? () => context.push(
-                          RoutePaths.applyLoan(
-                            chamaId,
-                            productId: product.id,
-                          ),
-                        )
-                    : null,
-              ),
-              const SizedBox(height: AppSpacing.sm),
+              if (product.isActive)
+                ActionButton(
+                  label: 'Apply for Loan',
+                  icon: Icons.request_quote_outlined,
+                  onPressed: () => context.push(
+                    RoutePaths.applyLoan(
+                      chamaId,
+                      productId: product.id,
+                    ),
+                  ),
+                ),
+              if (product.isActive) const SizedBox(height: AppSpacing.sm),
               ActionButton(
                 label: 'Open calculator',
                 icon: Icons.calculate_outlined,
@@ -136,7 +184,32 @@ class LoanProductDetailsScreen extends ConsumerWidget {
                 onPressed: () =>
                     context.push(RoutePaths.loanCalculator(chamaId)),
               ),
-            ],
+              if (role.canManageLoanProducts) ...[
+                const SizedBox(height: AppSpacing.md),
+                const SectionHeader(title: 'Management'),
+                const SizedBox(height: AppSpacing.sm),
+                ActionButton(
+                  label: 'Edit product',
+                  icon: Icons.edit_outlined,
+                  variant: ActionButtonVariant.secondary,
+                  onPressed: manageState.isSubmitting
+                      ? null
+                      : () => context.push(
+                            RoutePaths.editLoanProduct(chamaId, productId),
+                          ),
+                ),
+                const SizedBox(height: AppSpacing.sm),
+                ActionButton(
+                  label: 'Delete product',
+                  icon: Icons.delete_outline,
+                  isDestructive: true,
+                  onPressed: manageState.isSubmitting
+                      ? null
+                      : () => _delete(context, ref),
+                ),
+              ],
+              ],
+            ),
           );
         },
       ),

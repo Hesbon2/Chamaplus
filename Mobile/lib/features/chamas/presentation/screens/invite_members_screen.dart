@@ -26,12 +26,7 @@ class _InviteMembersScreenState extends ConsumerState<InviteMembersScreen> {
   String _role = 'member';
   bool _submitting = false;
 
-  static const _roles = <(String, String)>[
-    ('member', 'Member'),
-    ('treasurer', 'Treasurer'),
-    ('secretary', 'Secretary'),
-    ('committee_member', 'Committee member'),
-  ];
+  static const _roles = ChamaAssignableRoles.options;
 
   @override
   void dispose() {

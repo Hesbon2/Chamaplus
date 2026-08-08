@@ -10,7 +10,7 @@ import '../../../../shared/components/components.dart';
 import '../../../chamas/presentation/providers/chama_providers.dart';
 import '../providers/onboarding_providers.dart';
 
-/// Waiting state for invitees until a chairperson activates membership.
+/// Waiting state helper that points invitees to pending invitations.
 class PendingApprovalScreen extends ConsumerStatefulWidget {
   const PendingApprovalScreen({super.key});
 
@@ -32,12 +32,21 @@ class _PendingApprovalScreenState extends ConsumerState<PendingApprovalScreen> {
         markOnboardingReady(ref);
         AppSnackbar.success(context, 'You are now an active member!');
         context.go(RoutePaths.chamaDetails(chamas.first.id));
-      } else {
-        AppSnackbar.info(
-          context,
-          'Still pending. Ask your chairperson to approve, or join with a code.',
-        );
+        return;
       }
+
+      final pending =
+          await ref.read(chamaRepositoryProvider).listPendingInvitations();
+      if (!mounted) return;
+      if (pending.isNotEmpty) {
+        context.push(RoutePaths.pendingInvitations);
+        return;
+      }
+
+      AppSnackbar.info(
+        context,
+        'No active membership yet. Check pending invitations or join with a code.',
+      );
     } on AppException catch (error) {
       if (!mounted) return;
       AppSnackbar.error(context, error.message);
@@ -78,13 +87,13 @@ class _PendingApprovalScreenState extends ConsumerState<PendingApprovalScreen> {
                       ),
                       const SizedBox(height: AppSpacing.md),
                       Text(
-                        'Waiting for approval',
+                        'Waiting to join a Chama',
                         style: theme.textTheme.titleLarge,
                         textAlign: TextAlign.center,
                       ),
                       const SizedBox(height: AppSpacing.sm),
                       Text(
-                        'When a chairperson invites you, your membership stays pending until they approve it under Join requests. You can also join instantly with an invite code.',
+                        'Phone invitations appear under Pending invitations where you can accept or decline. You can also join instantly with an invite code.',
                         style: theme.textTheme.bodyMedium?.copyWith(
                           color: theme.colorScheme.onSurfaceVariant,
                         ),
@@ -96,14 +105,22 @@ class _PendingApprovalScreenState extends ConsumerState<PendingApprovalScreen> {
               ),
               const SizedBox(height: AppSpacing.lg),
               EmptyActionCard(
-                title: 'Check status',
+                title: 'Pending invitations',
                 message:
-                    'Refresh to see whether your membership has been activated.',
-                icon: Icons.refresh,
-                actionLabel: _checking ? 'Checking…' : 'Refresh status',
-                onAction: _refreshStatus,
+                    'Review invitations sent to your phone number and respond.',
+                icon: Icons.mail_outline,
+                actionLabel: 'View invitations',
+                onAction: () => context.push(RoutePaths.pendingInvitations),
                 secondaryActionLabel: 'Join with invite code',
                 onSecondaryAction: () => context.push(RoutePaths.joinChama),
+              ),
+              const SizedBox(height: AppSpacing.md),
+              ActionButton(
+                label: _checking ? 'Checking…' : 'Refresh status',
+                icon: Icons.refresh,
+                variant: ActionButtonVariant.secondary,
+                isLoading: _checking,
+                onPressed: _refreshStatus,
               ),
               const Spacer(),
               ActionButton(

@@ -13,6 +13,22 @@ abstract class LoanRepository {
     required String productId,
   });
 
+  Future<LoanProduct> createProduct({
+    required String chamaId,
+    required LoanProductInput input,
+  });
+
+  Future<LoanProduct> updateProduct({
+    required String chamaId,
+    required String productId,
+    required LoanProductInput input,
+  });
+
+  Future<void> deleteProduct({
+    required String chamaId,
+    required String productId,
+  });
+
   Future<PagedResult<LoanApplication>> listApplications({
     required String chamaId,
     String? search,

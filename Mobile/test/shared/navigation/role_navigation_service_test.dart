@@ -20,19 +20,41 @@ void main() {
       expect(actions.any((a) => a.id == 'schedule_meeting'), isFalse);
     });
 
-    test('treasurer gets money and invite actions for a chama', () {
+    test('treasurer gets money actions but not invite for a chama', () {
       final actions = RoleNavigationService.quickActionsFor(
         roleLabel: 'treasurer',
         chamaId: 'c1',
       );
       final ids = actions.map((a) => a.id).toSet();
       expect(ids, contains('record_contribution'));
-      expect(ids, contains('invite_members'));
+      expect(ids, isNot(contains('invite_members')));
+      expect(ids, isNot(contains('join_requests')));
       expect(ids, contains('apply_loan'));
       expect(
         actions.firstWhere((a) => a.id == 'record_contribution').route,
         RoutePaths.recordContribution('c1'),
       );
+    });
+
+    test('secretary can invite and schedule but not approve join requests', () {
+      final actions = RoleNavigationService.quickActionsFor(
+        roleLabel: 'Secretary',
+        chamaId: 'c1',
+      );
+      final ids = actions.map((a) => a.id).toSet();
+      expect(ids, contains('invite_members'));
+      expect(ids, contains('schedule_meeting'));
+      expect(ids, isNot(contains('join_requests')));
+    });
+
+    test('chairperson can invite and manage join requests', () {
+      final actions = RoleNavigationService.quickActionsFor(
+        roleLabel: 'chairperson',
+        chamaId: 'c1',
+      );
+      final ids = actions.map((a) => a.id).toSet();
+      expect(ids, contains('invite_members'));
+      expect(ids, contains('join_requests'));
     });
 
     test('regular member sees upcoming meetings instead of schedule', () {
@@ -63,5 +85,26 @@ void main() {
         .firstWhere((a) => a.id == 'reports');
     expect(reports.subtitle, isNot(contains('Coming soon')));
     expect(reports.route, RoutePaths.reports);
+  });
+
+  test('moreMenuActions deep-links when chamaId is provided', () {
+    final actions =
+        RoleNavigationService.moreMenuActions(chamaId: 'chama-42');
+    expect(
+      actions.firstWhere((a) => a.id == 'meetings').route,
+      RoutePaths.chamaMeetings('chama-42'),
+    );
+    expect(
+      actions.firstWhere((a) => a.id == 'contributions').route,
+      RoutePaths.chamaContributions('chama-42'),
+    );
+    expect(
+      actions.firstWhere((a) => a.id == 'reports').route,
+      RoutePaths.chamaReports('chama-42'),
+    );
+    expect(
+      actions.firstWhere((a) => a.id == 'settings').route,
+      RoutePaths.settings,
+    );
   });
 }

@@ -1,4 +1,3 @@
-import '../../../../core/models/paged_result.dart';
 import '../../domain/entities/chama.dart';
 import '../../domain/repositories/chama_repository.dart';
 import '../datasources/chama_api.dart';
@@ -192,6 +191,48 @@ class ChamaRepositoryImpl implements ChamaRepository {
       membershipId: membershipId,
       status: MembershipStatus.left.apiValue,
     );
+    return dto.toEntity();
+  }
+
+  @override
+  Future<Membership> updateMembershipRole({
+    required String membershipId,
+    required String role,
+  }) async {
+    final dto = await _api.updateMembershipRole(
+      membershipId: membershipId,
+      role: role,
+    );
+    return dto.toEntity();
+  }
+
+  @override
+  Future<Membership> updateMembershipStatus({
+    required String membershipId,
+    required MembershipStatus status,
+  }) async {
+    final dto = await _api.updateMembershipStatus(
+      membershipId: membershipId,
+      status: status.apiValue,
+    );
+    return dto.toEntity();
+  }
+
+  @override
+  Future<List<Membership>> listPendingInvitations() async {
+    final dtos = await _api.listPendingInvitations();
+    return dtos.map((d) => d.toEntity()).toList();
+  }
+
+  @override
+  Future<Membership> acceptInvitation(String membershipId) async {
+    final dto = await _api.acceptInvitation(membershipId);
+    return dto.toEntity();
+  }
+
+  @override
+  Future<Membership> declineInvitation(String membershipId) async {
+    final dto = await _api.declineInvitation(membershipId);
     return dto.toEntity();
   }
 }

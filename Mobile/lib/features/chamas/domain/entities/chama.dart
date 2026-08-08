@@ -159,6 +159,17 @@ class InviteMemberInput {
   final String role;
 }
 
+/// Assignable Chama roles matching backend non-platform role slugs.
+abstract final class ChamaAssignableRoles {
+  static const List<(String slug, String label)> options = [
+    ('chairperson', 'Chairperson'),
+    ('treasurer', 'Treasurer'),
+    ('secretary', 'Secretary'),
+    ('committee_member', 'Committee member'),
+    ('member', 'Member'),
+  ];
+}
+
 /// Chama membership linking a user to a group.
 class Membership {
   const Membership({
@@ -168,6 +179,8 @@ class Membership {
     required this.status,
     this.joinedAt,
     this.createdAt,
+    this.chamaId,
+    this.chamaName,
   });
 
   final String id;
@@ -176,6 +189,10 @@ class Membership {
   final MembershipStatus status;
   final DateTime? joinedAt;
   final DateTime? createdAt;
+
+  /// Present on pending-invitation payloads (`GET /memberships/pending/`).
+  final String? chamaId;
+  final String? chamaName;
 }
 
 /// Upcoming meeting summary for a Chama.

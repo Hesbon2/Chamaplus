@@ -33,6 +33,17 @@ abstract class ChamaRemoteDataSource {
     required String membershipId,
     required String status,
   });
+
+  Future<MembershipDto> updateMembershipRole({
+    required String membershipId,
+    required String role,
+  });
+
+  Future<List<MembershipDto>> listPendingInvitations();
+
+  Future<MembershipDto> acceptInvitation(String membershipId);
+
+  Future<MembershipDto> declineInvitation(String membershipId);
 }
 
 class ChamaApi implements ChamaRemoteDataSource {
@@ -140,6 +151,51 @@ class ChamaApi implements ChamaRemoteDataSource {
     final response = await _apiClient.patch<Map<String, dynamic>>(
       ApiConstants.membershipStatus(membershipId),
       data: {'status': status},
+    );
+    return MembershipDto.fromJson(_unwrapMap(response.data));
+  }
+
+  @override
+  Future<MembershipDto> updateMembershipRole({
+    required String membershipId,
+    required String role,
+  }) async {
+    final response = await _apiClient.patch<Map<String, dynamic>>(
+      ApiConstants.membershipRole(membershipId),
+      data: {'role': role},
+    );
+    return MembershipDto.fromJson(_unwrapMap(response.data));
+  }
+
+  @override
+  Future<List<MembershipDto>> listPendingInvitations() async {
+    final response = await _apiClient.get<Map<String, dynamic>>(
+      ApiConstants.membershipsPending,
+    );
+    final envelope = ApiResponse<List<dynamic>>.fromJson(
+      response.data ?? {},
+      (data) => data as List<dynamic>? ?? [],
+    );
+    if (!envelope.success || envelope.data == null) {
+      throw ServerException(message: envelope.message);
+    }
+    return envelope.data!
+        .map((item) => MembershipDto.fromJson(item as Map<String, dynamic>))
+        .toList();
+  }
+
+  @override
+  Future<MembershipDto> acceptInvitation(String membershipId) async {
+    final response = await _apiClient.post<Map<String, dynamic>>(
+      ApiConstants.membershipAccept(membershipId),
+    );
+    return MembershipDto.fromJson(_unwrapMap(response.data));
+  }
+
+  @override
+  Future<MembershipDto> declineInvitation(String membershipId) async {
+    final response = await _apiClient.post<Map<String, dynamic>>(
+      ApiConstants.membershipDecline(membershipId),
     );
     return MembershipDto.fromJson(_unwrapMap(response.data));
   }

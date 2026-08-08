@@ -53,6 +53,13 @@ class ApiConstants {
       '/chamas/$chamaId/reports/$reportType/export/';
   static String membershipStatus(String membershipId) =>
       '/memberships/$membershipId/status/';
+  static String membershipRole(String membershipId) =>
+      '/memberships/$membershipId/role/';
+  static const String membershipsPending = '/memberships/pending/';
+  static String membershipAccept(String membershipId) =>
+      '/memberships/$membershipId/accept/';
+  static String membershipDecline(String membershipId) =>
+      '/memberships/$membershipId/decline/';
   static const String notifications = '/notifications/';
   static String notificationDetail(String notificationId) =>
       '/notifications/$notificationId/';

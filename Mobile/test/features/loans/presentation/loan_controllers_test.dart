@@ -92,6 +92,65 @@ class FakeLoanRepository implements LoanRepository {
   }
 
   @override
+  Future<LoanProduct> createProduct({
+    required String chamaId,
+    required LoanProductInput input,
+  }) async {
+    if (error != null) throw error!;
+    final product = LoanProduct(
+      id: 'p-new',
+      chamaId: chamaId,
+      name: input.name,
+      description: input.description,
+      interestRate: input.interestRate,
+      minimumAmount: input.minimumAmount,
+      maximumAmount: input.maximumAmount,
+      maximumDuration: input.maximumDuration,
+      gracePeriodDays: input.gracePeriodDays,
+      processingFee: input.processingFee,
+      isActive: input.isActive,
+    );
+    products = [...products, product];
+    return product;
+  }
+
+  @override
+  Future<LoanProduct> updateProduct({
+    required String chamaId,
+    required String productId,
+    required LoanProductInput input,
+  }) async {
+    if (error != null) throw error!;
+    final updated = LoanProduct(
+      id: productId,
+      chamaId: chamaId,
+      name: input.name,
+      description: input.description,
+      interestRate: input.interestRate,
+      minimumAmount: input.minimumAmount,
+      maximumAmount: input.maximumAmount,
+      maximumDuration: input.maximumDuration,
+      gracePeriodDays: input.gracePeriodDays,
+      processingFee: input.processingFee,
+      isActive: input.isActive,
+    );
+    products = [
+      for (final p in products)
+        if (p.id == productId) updated else p,
+    ];
+    return updated;
+  }
+
+  @override
+  Future<void> deleteProduct({
+    required String chamaId,
+    required String productId,
+  }) async {
+    if (error != null) throw error!;
+    products = products.where((p) => p.id != productId).toList();
+  }
+
+  @override
   Future<LoanRepayment> getRepayment({
     required String chamaId,
     required String applicationId,
@@ -251,5 +310,90 @@ void main() {
     await controller.load();
     expect(controller.state.isError, isTrue);
     expect(controller.state.errorMessage, contains('Offline'));
+  });
+
+  test('ManageLoanProductController create success refreshes list data',
+      () async {
+    final repo = FakeLoanRepository();
+    final manage = ManageLoanProductController(repo);
+    final list = LoanProductsController(repository: repo, chamaId: 'c1');
+
+    await list.load();
+    expect(list.state.isEmpty, isTrue);
+
+    final created = await manage.create(
+      chamaId: 'c1',
+      input: const LoanProductInput(
+        name: 'Emergency',
+        interestRate: 10,
+        minimumAmount: 1000,
+        maximumAmount: 20000,
+        maximumDuration: 6,
+      ),
+    );
+
+    expect(created, isNotNull);
+    expect(manage.state.isSubmitting, isFalse);
+    await list.refresh();
+    expect(list.state.data, hasLength(1));
+    expect(list.state.data!.first.name, 'Emergency');
+  });
+
+  test('ManageLoanProductController create surfaces API errors', () async {
+    final repo = FakeLoanRepository()
+      ..error = const ServerException(message: 'Forbidden');
+    final manage = ManageLoanProductController(repo);
+
+    final created = await manage.create(
+      chamaId: 'c1',
+      input: const LoanProductInput(
+        name: 'Emergency',
+        interestRate: 10,
+        minimumAmount: 1000,
+        maximumAmount: 20000,
+        maximumDuration: 6,
+      ),
+    );
+
+    expect(created, isNull);
+    expect(manage.state.errorMessage, contains('Forbidden'));
+  });
+
+  test('ManageLoanProductController update and delete', () async {
+    final repo = FakeLoanRepository()
+      ..products = [
+        const LoanProduct(
+          id: 'p1',
+          chamaId: 'c1',
+          name: 'Emergency',
+          interestRate: 10,
+          minimumAmount: 1000,
+          maximumAmount: 20000,
+          maximumDuration: 6,
+          gracePeriodDays: 0,
+          processingFee: 0,
+          isActive: true,
+        ),
+      ];
+    final manage = ManageLoanProductController(repo);
+
+    final updated = await manage.update(
+      chamaId: 'c1',
+      productId: 'p1',
+      input: const LoanProductInput(
+        name: 'Emergency Plus',
+        interestRate: 12,
+        minimumAmount: 2000,
+        maximumAmount: 30000,
+        maximumDuration: 9,
+        isActive: false,
+      ),
+    );
+    expect(updated?.name, 'Emergency Plus');
+    expect(repo.products.first.isActive, isFalse);
+
+    final deleted = await manage.delete(chamaId: 'c1', productId: 'p1');
+    expect(deleted, isTrue);
+    expect(repo.products, isEmpty);
   });
 }

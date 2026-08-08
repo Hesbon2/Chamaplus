@@ -56,6 +56,8 @@ class MembershipDto {
     required this.status,
     this.joinedAt,
     this.createdAt,
+    this.chamaId,
+    this.chamaName,
   });
 
   final String id;
@@ -64,8 +66,17 @@ class MembershipDto {
   final String status;
   final String? joinedAt;
   final String? createdAt;
+  final String? chamaId;
+  final String? chamaName;
 
   factory MembershipDto.fromJson(Map<String, dynamic> json) {
+    final chama = json['chama'];
+    String? chamaId;
+    String? chamaName;
+    if (chama is Map<String, dynamic>) {
+      chamaId = chama['id']?.toString();
+      chamaName = chama['name'] as String?;
+    }
     return MembershipDto(
       id: json['id'] as String,
       user: MemberUserDto.fromJson(json['user'] as Map<String, dynamic>),
@@ -73,6 +84,8 @@ class MembershipDto {
       status: json['status'] as String? ?? 'active',
       joinedAt: json['joined_at'] as String?,
       createdAt: json['created_at'] as String?,
+      chamaId: chamaId,
+      chamaName: chamaName,
     );
   }
 
@@ -84,6 +97,8 @@ class MembershipDto {
       status: MembershipStatus.fromApi(status),
       joinedAt: joinedAt != null ? DateTime.tryParse(joinedAt!) : null,
       createdAt: createdAt != null ? DateTime.tryParse(createdAt!) : null,
+      chamaId: chamaId,
+      chamaName: chamaName,
     );
   }
 }

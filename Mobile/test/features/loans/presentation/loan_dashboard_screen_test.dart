@@ -97,6 +97,31 @@ class _FakeLoanRepository implements LoanRepository {
   }
 
   @override
+  Future<LoanProduct> createProduct({
+    required String chamaId,
+    required LoanProductInput input,
+  }) {
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<LoanProduct> updateProduct({
+    required String chamaId,
+    required String productId,
+    required LoanProductInput input,
+  }) {
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<void> deleteProduct({
+    required String chamaId,
+    required String productId,
+  }) {
+    throw UnimplementedError();
+  }
+
+  @override
   Future<LoanRepayment> getRepayment({
     required String chamaId,
     required String applicationId,

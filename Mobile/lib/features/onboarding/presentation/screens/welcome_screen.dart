@@ -4,8 +4,11 @@ import 'package:go_router/go_router.dart';
 
 import '../../../../core/routing/route_paths.dart';
 import '../../../../core/theme/app_spacing.dart';
+import '../../../../shared/api_state.dart';
 import '../../../../shared/components/components.dart';
 import '../../../auth/presentation/providers/auth_providers.dart';
+import '../../../chamas/domain/entities/chama.dart';
+import '../../../chamas/presentation/providers/chama_providers.dart';
 
 /// Post-auth landing when the user has no active chama yet.
 class WelcomeScreen extends ConsumerWidget {
@@ -14,11 +17,13 @@ class WelcomeScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final user = ref.watch(authControllerProvider).user;
+    final pendingState = ref.watch(pendingInvitationsControllerProvider);
     final theme = Theme.of(context);
     final name = user?.firstName?.trim();
     final greeting = (name != null && name.isNotEmpty)
         ? 'Welcome, $name'
         : 'Welcome to ChamaPlus';
+    final pendingCount = _pendingCount(pendingState);
 
     return Scaffold(
       appBar: AppBar(
@@ -70,7 +75,7 @@ class WelcomeScreen extends ConsumerWidget {
                             ),
                             const SizedBox(height: AppSpacing.xs),
                             Text(
-                              'Create a new chama or join one with an invite code.',
+                              "You don't belong to an active Chama yet.",
                               style: theme.textTheme.bodyLarge?.copyWith(
                                 color: theme.colorScheme.onSurfaceVariant,
                               ),
@@ -95,14 +100,19 @@ class WelcomeScreen extends ConsumerWidget {
                       ],
                       const SizedBox(height: AppSpacing.md),
                       EmptyActionCard(
-                        title: 'Waiting for approval?',
-                        message:
-                            'If a chairperson invited you, wait here while they approve — or join with an invite code.',
-                        icon: Icons.hourglass_top_outlined,
-                        actionLabel: 'View pending status',
+                        title: pendingCount > 0
+                            ? 'Pending invitations ($pendingCount)'
+                            : 'Pending invitations',
+                        message: pendingCount > 0
+                            ? 'You have invitations waiting. Accept to join a chama instantly.'
+                            : 'If a chairperson invited you by phone, review and respond here.',
+                        icon: Icons.mail_outline,
+                        actionLabel: pendingCount > 0
+                            ? 'View invitations'
+                            : 'View pending invitations',
                         onAction: () =>
-                            context.push(RoutePaths.pendingApproval),
-                        secondaryActionLabel: 'I have an invite code',
+                            context.push(RoutePaths.pendingInvitations),
+                        secondaryActionLabel: 'Join with invite code',
                         onSecondaryAction: () =>
                             context.push(RoutePaths.joinChama),
                       ),
@@ -115,6 +125,12 @@ class WelcomeScreen extends ConsumerWidget {
         ),
       ),
     );
+  }
+
+  int _pendingCount(ApiState<List<Membership>> state) {
+    final data = state.data;
+    if (data == null) return 0;
+    return data.length;
   }
 
   Widget _createCard(BuildContext context) {

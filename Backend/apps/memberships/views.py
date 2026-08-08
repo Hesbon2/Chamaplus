@@ -17,6 +17,7 @@ from apps.memberships.serializers import (
     MembershipRoleUpdateSerializer,
     MembershipSerializer,
     MembershipStatusUpdateSerializer,
+    PendingInvitationSerializer,
 )
 from apps.memberships.services.membership_service import MembershipService
 
@@ -106,6 +107,60 @@ class MemberListView(EnvelopeAPIView):
                 "results": serializer.data,
             },
             message="Members retrieved successfully.",
+        )
+
+
+class PendingInvitationsListView(EnvelopeAPIView):
+    permission_classes = [IsAuthenticated]
+
+    @extend_schema(
+        tags=["Memberships"],
+        summary="List pending Chama invitations for the authenticated user",
+        responses={200: PendingInvitationSerializer(many=True)},
+    )
+    def get(self, request):
+        invitations = MembershipService.list_pending_invitations(request.user)
+        return success_response(
+            data=PendingInvitationSerializer(invitations, many=True).data,
+            message="Pending invitations retrieved successfully.",
+        )
+
+
+class MembershipAcceptInvitationView(EnvelopeAPIView):
+    permission_classes = [IsAuthenticated]
+
+    @extend_schema(
+        tags=["Memberships"],
+        summary="Accept a pending Chama invitation (invitee only)",
+        responses={200: PendingInvitationSerializer},
+    )
+    def post(self, request, pk):
+        membership = MembershipService.accept_invitation(request.user, pk)
+        membership = Membership.objects.select_related("user", "role", "chama").get(
+            pk=membership.pk
+        )
+        return success_response(
+            data=PendingInvitationSerializer(membership).data,
+            message="Invitation accepted successfully.",
+        )
+
+
+class MembershipDeclineInvitationView(EnvelopeAPIView):
+    permission_classes = [IsAuthenticated]
+
+    @extend_schema(
+        tags=["Memberships"],
+        summary="Decline a pending Chama invitation (invitee only)",
+        responses={200: PendingInvitationSerializer},
+    )
+    def post(self, request, pk):
+        membership = MembershipService.decline_invitation(request.user, pk)
+        membership = Membership.objects.select_related("user", "role", "chama").get(
+            pk=membership.pk
+        )
+        return success_response(
+            data=PendingInvitationSerializer(membership).data,
+            message="Invitation declined successfully.",
         )
 
 

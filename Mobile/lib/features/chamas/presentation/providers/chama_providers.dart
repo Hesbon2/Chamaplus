@@ -9,7 +9,9 @@ import '../../domain/repositories/chama_repository.dart';
 import '../controllers/chama_details_controller.dart';
 import '../controllers/chama_list_controller.dart';
 import '../controllers/join_requests_controller.dart';
+import '../controllers/manage_membership_controller.dart';
 import '../controllers/members_controller.dart';
+import '../controllers/pending_invitations_controller.dart';
 
 final chamaApiProvider = Provider<ChamaApi>((ref) {
   return ChamaApi(ref.watch(apiClientProvider));
@@ -23,6 +25,16 @@ final chamaListControllerProvider =
     StateNotifierProvider.autoDispose<ChamaListController, ApiState<List<Chama>>>(
   (ref) {
     final controller = ChamaListController(ref.watch(chamaRepositoryProvider));
+    Future.microtask(controller.load);
+    return controller;
+  },
+);
+
+final pendingInvitationsControllerProvider = StateNotifierProvider.autoDispose<
+    PendingInvitationsController, ApiState<List<Membership>>>(
+  (ref) {
+    final controller =
+        PendingInvitationsController(ref.watch(chamaRepositoryProvider));
     Future.microtask(controller.load);
     return controller;
   },
@@ -72,4 +84,9 @@ final memberDetailsProvider = FutureProvider.autoDispose
           membershipId: args.membershipId,
         );
   },
+);
+
+final manageMembershipControllerProvider = StateNotifierProvider.autoDispose<
+    ManageMembershipController, ManageMembershipState>(
+  (ref) => ManageMembershipController(ref.watch(chamaRepositoryProvider)),
 );

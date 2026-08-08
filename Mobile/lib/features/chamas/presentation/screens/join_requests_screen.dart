@@ -5,6 +5,7 @@ import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/widgets/app_snackbar.dart';
 import '../../../../shared/api_state.dart';
 import '../../../../shared/components/components.dart';
+import '../../../../shared/navigation/navigation.dart';
 import '../../domain/entities/chama.dart';
 import '../providers/chama_providers.dart';
 
@@ -19,6 +20,8 @@ class JoinRequestsScreen extends ConsumerWidget {
     final state = ref.watch(joinRequestsControllerProvider(chamaId));
     final controller =
         ref.read(joinRequestsControllerProvider(chamaId).notifier);
+    final canManage =
+        ref.watch(currentMemberRoleProvider).canManageMemberships;
 
     ref.listen(joinRequestsControllerProvider(chamaId), (previous, next) {
       final ctrl = ref.read(joinRequestsControllerProvider(chamaId).notifier);
@@ -39,8 +42,9 @@ class JoinRequestsScreen extends ConsumerWidget {
         onRefresh: controller.refresh,
         onRetry: controller.retry,
         emptyTitle: 'No pending requests',
-        emptyMessage:
-            'Invited members waiting for approval will appear here.',
+        emptyMessage: canManage
+            ? 'Invited members waiting for approval will appear here.'
+            : 'Only the chairperson can approve or reject join requests.',
         emptyIcon: Icons.mark_email_read_outlined,
         shimmerItemCount: 4,
         shimmerItemHeight: 96,
@@ -88,57 +92,65 @@ class JoinRequestsScreen extends ConsumerWidget {
                         ),
                       ],
                     ),
-                    const SizedBox(height: AppSpacing.md),
-                    Row(
-                      children: [
-                        Expanded(
-                          child: ActionButton(
-                            label: 'Reject',
-                            variant: ActionButtonVariant.secondary,
-                            isDestructive: true,
-                            isLoading: processing,
-                            expand: true,
-                            onPressed: processing
-                                ? null
-                                : () async {
-                                    final confirmed =
-                                        await showAppConfirmationDialog(
-                                      context: context,
-                                      title: 'Reject join request?',
-                                      message:
-                                          'This will mark ${request.user.displayName} as left.',
-                                      confirmLabel: 'Reject',
-                                      isDestructive: true,
-                                    );
-                                    if (!confirmed) return;
-                                    await controller.reject(request.id);
-                                  },
+                    if (canManage) ...[
+                      const SizedBox(height: AppSpacing.md),
+                      Row(
+                        children: [
+                          Expanded(
+                            child: ActionButton(
+                              label: 'Reject',
+                              variant: ActionButtonVariant.secondary,
+                              isDestructive: true,
+                              isLoading: processing,
+                              expand: true,
+                              onPressed: processing
+                                  ? null
+                                  : () async {
+                                      final confirmed =
+                                          await showAppConfirmationDialog(
+                                        context: context,
+                                        title: 'Reject join request?',
+                                        message:
+                                            'This will mark ${request.user.displayName} as left.',
+                                        confirmLabel: 'Reject',
+                                        isDestructive: true,
+                                      );
+                                      if (!confirmed) return;
+                                      await controller.reject(request.id);
+                                    },
+                            ),
                           ),
-                        ),
-                        const SizedBox(width: AppSpacing.sm),
-                        Expanded(
-                          child: ActionButton(
-                            label: 'Approve',
-                            isLoading: processing,
-                            expand: true,
-                            onPressed: processing
-                                ? null
-                                : () async {
-                                    final confirmed =
-                                        await showAppConfirmationDialog(
-                                      context: context,
-                                      title: 'Approve join request?',
-                                      message:
-                                          'Activate membership for ${request.user.displayName}.',
-                                      confirmLabel: 'Approve',
-                                    );
-                                    if (!confirmed) return;
-                                    await controller.approve(request.id);
-                                  },
+                          const SizedBox(width: AppSpacing.sm),
+                          Expanded(
+                            child: ActionButton(
+                              label: 'Approve',
+                              isLoading: processing,
+                              expand: true,
+                              onPressed: processing
+                                  ? null
+                                  : () async {
+                                      final confirmed =
+                                          await showAppConfirmationDialog(
+                                        context: context,
+                                        title: 'Approve join request?',
+                                        message:
+                                            'Activate membership for ${request.user.displayName}.',
+                                        confirmLabel: 'Approve',
+                                      );
+                                      if (!confirmed) return;
+                                      await controller.approve(request.id);
+                                    },
+                            ),
                           ),
-                        ),
-                      ],
-                    ),
+                        ],
+                      ),
+                    ] else ...[
+                      const SizedBox(height: AppSpacing.sm),
+                      Text(
+                        'Waiting for chairperson approval.',
+                        style: Theme.of(context).textTheme.bodySmall,
+                      ),
+                    ],
                   ],
                 ),
               );

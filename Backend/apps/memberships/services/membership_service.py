@@ -68,6 +68,15 @@ class MembershipService:
                 raise DomainError(
                     "User is suspended. Update status instead of re-inviting."
                 )
+            if existing.status == LEFT:
+                role = MembershipService._get_chama_role(role_slug)
+                existing.role = role
+                existing.status = PENDING
+                existing.joined_at = None
+                existing.save(
+                    update_fields=["role", "status", "joined_at", "updated_at"]
+                )
+                return existing
 
         role = MembershipService._get_chama_role(role_slug)
         return Membership.objects.create(
@@ -76,6 +85,48 @@ class MembershipService:
             role=role,
             status=PENDING,
         )
+
+    @staticmethod
+    def list_pending_invitations(user):
+        """Pending memberships for the authenticated invitee only."""
+        return (
+            Membership.objects.filter(user=user, status=PENDING)
+            .select_related("user", "role", "chama")
+            .order_by("-created_at")
+        )
+
+    @staticmethod
+    def accept_invitation(user, membership_id):
+        membership = MembershipService.get_membership(membership_id)
+        if membership.user_id != user.id:
+            raise DomainError(
+                "You can only accept your own invitations.",
+                status_code=403,
+            )
+        if membership.status != PENDING:
+            raise DomainError("Only pending invitations can be accepted.")
+        membership.activate()
+        return membership
+
+    @staticmethod
+    def decline_invitation(user, membership_id):
+        """
+        Decline a pending invitation.
+
+        Maps to status ``left`` — there is no dedicated ``declined`` status.
+        A chairperson/secretary may re-invite the same user afterward.
+        """
+        membership = MembershipService.get_membership(membership_id)
+        if membership.user_id != user.id:
+            raise DomainError(
+                "You can only decline your own invitations.",
+                status_code=403,
+            )
+        if membership.status != PENDING:
+            raise DomainError("Only pending invitations can be declined.")
+        membership.status = LEFT
+        membership.save(update_fields=["status", "updated_at"])
+        return membership
 
     @staticmethod
     def join_chama(user, invite_code):

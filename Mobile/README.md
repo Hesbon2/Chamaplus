@@ -73,6 +73,39 @@ Import via:
 import 'package:chamaplus_mobile/shared/navigation/navigation.dart';
 ```
 
+## Chamas & membership RBAC
+
+Path: `lib/features/chamas/`
+
+### Role helpers (`AppMemberRole`)
+
+| Capability | Roles |
+|------------|-------|
+| Invite members | Chairperson, Secretary |
+| Manage roles / status / join-request approve·reject | Chairperson only |
+| View members / chama details | Any active member |
+
+Uses `currentMemberRoleProvider` (from dashboard `userRole`). Backend remains authoritative.
+
+### Membership management
+
+- **Member details (chairperson):** Change role (`PATCH /memberships/{id}/role/` with `{ "role": "<slug>" }`), suspend / reactivate / mark left / approve pending (`PATCH /memberships/{id}/status/`).
+- **Invite:** Chairperson & secretary only (FAB + chama details). Assignable roles: chairperson, treasurer, secretary, committee_member, member.
+- **Join requests:** Approve/Reject buttons only for chairperson; other roles see a read-only pending list if they open the route.
+- **Pending invitations (invitee):** `/pending-invitations` lists the authenticated user's pending phone invitations (`GET /memberships/pending/`). Accept (`POST /memberships/{id}/accept/`) activates membership and exits onboarding; decline (`POST /memberships/{id}/decline/`) maps to status `left`. Welcome onboarding links here.
+
+### API mapping
+
+| Client | Backend |
+|--------|---------|
+| `POST /chamas/{id}/invite/` | Invite by phone |
+| `GET /chamas/{id}/members/` | List members (`?status=pending` for join requests) |
+| `GET /memberships/pending/` | List my pending invitations |
+| `POST /memberships/{id}/accept/` | Accept invitation (invitee) |
+| `POST /memberships/{id}/decline/` | Decline invitation (invitee → `left`) |
+| `PATCH /memberships/{id}/role/` | Update role (chairperson) |
+| `PATCH /memberships/{id}/status/` | Update status (chairperson) |
+
 ## Loans module
 
 Path: `lib/features/loans/`
@@ -83,8 +116,10 @@ Path: `lib/features/loans/`
 |-------|--------|
 | `/loans` | Loans hub (pick chama) |
 | `/chamas/:chamaId/loans` | Loan dashboard |
-| `/chamas/:chamaId/loans/products` | Loan products |
-| `/chamas/:chamaId/loans/products/:productId` | Product details |
+| `/chamas/:chamaId/loans/products` | Loan products (role-aware empty + create FAB) |
+| `/chamas/:chamaId/loans/products/create` | Create loan product (chairperson / treasurer) |
+| `/chamas/:chamaId/loans/products/:productId` | Product details (edit/delete for chairperson) |
+| `/chamas/:chamaId/loans/products/:productId/edit` | Edit loan product (chairperson) |
 | `/chamas/:chamaId/loans/calculator` | Loan calculator |
 | `/chamas/:chamaId/loans/apply` | Apply for loan |
 | `/chamas/:chamaId/loans/history` | Loan history |
@@ -100,7 +135,10 @@ All paths are relative to `/api/v1` and chama-scoped:
 | Client helper | Backend |
 |---------------|---------|
 | `GET /chamas/{id}/loan-products/` | List products |
+| `POST /chamas/{id}/loan-products/` | Create product (chairperson / treasurer) |
 | `GET /chamas/{id}/loan-products/{pid}/` | Product detail |
+| `PATCH /chamas/{id}/loan-products/{pid}/` | Update product (chairperson) |
+| `DELETE /chamas/{id}/loan-products/{pid}/` | Delete product (chairperson) |
 | `GET/POST /chamas/{id}/loan-applications/` | List / apply |
 | `POST .../loan-applications/{aid}/submit\|cancel\|approve\|reject\|disburse/` | Lifecycle |
 | `GET/POST .../loan-applications/{aid}/votes/` | Committee votes |
@@ -108,6 +146,14 @@ All paths are relative to `/api/v1` and chama-scoped:
 | `GET /chamas/{id}/members/{mid}/credit-scores/current/` | Credit score (optional) |
 
 Envelope responses `{ success, message, data }` are unwrapped in `LoanApi`.
+
+### Loan product management (mobile)
+
+- **Chairperson:** create, edit, delete products; members can still apply when a product is active.
+- **Treasurer:** create products; no edit/delete UI (backend rejects PATCH/DELETE).
+- **Other members:** view products and apply; empty state does not prompt them to create.
+- Role checks use `AppMemberRole` / `currentMemberRoleProvider` (`canCreateLoanProduct`, `canManageLoanProducts`); the API remains authoritative.
+- Form fields match the backend serializers: name, description, interest rate, min/max amount, maximum duration, grace period days, processing fee, `is_active`.
 
 ### Shared progress widget
 

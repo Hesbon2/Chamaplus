@@ -33,6 +33,40 @@ class LoanRepositoryImpl implements LoanRepository {
   }
 
   @override
+  Future<LoanProduct> createProduct({
+    required String chamaId,
+    required LoanProductInput input,
+  }) async {
+    final dto = await _api.createProduct(
+      chamaId: chamaId,
+      body: input.toJson(),
+    );
+    return dto.toEntity();
+  }
+
+  @override
+  Future<LoanProduct> updateProduct({
+    required String chamaId,
+    required String productId,
+    required LoanProductInput input,
+  }) async {
+    final dto = await _api.updateProduct(
+      chamaId: chamaId,
+      productId: productId,
+      body: input.toJson(),
+    );
+    return dto.toEntity();
+  }
+
+  @override
+  Future<void> deleteProduct({
+    required String chamaId,
+    required String productId,
+  }) async {
+    await _api.deleteProduct(chamaId: chamaId, productId: productId);
+  }
+
+  @override
   Future<PagedResult<LoanApplication>> listApplications({
     required String chamaId,
     String? search,

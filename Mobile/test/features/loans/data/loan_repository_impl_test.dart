@@ -93,6 +93,72 @@ class FakeLoanApi implements LoanRemoteDataSource {
     return products.firstWhere((p) => p.id == productId);
   }
 
+  Map<String, dynamic>? lastProductBody;
+
+  @override
+  Future<LoanProductDto> createProduct({
+    required String chamaId,
+    required Map<String, dynamic> body,
+  }) async {
+    if (error != null) throw error!;
+    lastProductBody = body;
+    final dto = LoanProductDto(
+      id: 'p-created',
+      chamaId: chamaId,
+      name: body['name'] as String,
+      description: body['description'] as String?,
+      interestRate: '${body['interest_rate']}',
+      minimumAmount: '${body['minimum_amount']}',
+      maximumAmount: '${body['maximum_amount']}',
+      maximumDuration: body['maximum_duration'] as int,
+      gracePeriodDays: body['grace_period_days'] as int? ?? 0,
+      processingFee: '${body['processing_fee'] ?? '0'}',
+      isActive: body['is_active'] as bool? ?? true,
+    );
+    products = [...products, dto];
+    return dto;
+  }
+
+  @override
+  Future<LoanProductDto> updateProduct({
+    required String chamaId,
+    required String productId,
+    required Map<String, dynamic> body,
+  }) async {
+    if (error != null) throw error!;
+    lastProductBody = body;
+    final existing = products.firstWhere((p) => p.id == productId);
+    final dto = LoanProductDto(
+      id: productId,
+      chamaId: chamaId,
+      name: body['name'] as String? ?? existing.name,
+      description: body['description'] as String? ?? existing.description,
+      interestRate: '${body['interest_rate'] ?? existing.interestRate}',
+      minimumAmount: '${body['minimum_amount'] ?? existing.minimumAmount}',
+      maximumAmount: '${body['maximum_amount'] ?? existing.maximumAmount}',
+      maximumDuration:
+          body['maximum_duration'] as int? ?? existing.maximumDuration,
+      gracePeriodDays:
+          body['grace_period_days'] as int? ?? existing.gracePeriodDays,
+      processingFee: '${body['processing_fee'] ?? existing.processingFee}',
+      isActive: body['is_active'] as bool? ?? existing.isActive,
+    );
+    products = [
+      for (final p in products)
+        if (p.id == productId) dto else p,
+    ];
+    return dto;
+  }
+
+  @override
+  Future<void> deleteProduct({
+    required String chamaId,
+    required String productId,
+  }) async {
+    if (error != null) throw error!;
+    products = products.where((p) => p.id != productId).toList();
+  }
+
   @override
   Future<LoanRepaymentDto> getRepayment({
     required String chamaId,
@@ -208,6 +274,83 @@ void main() {
     expect(products.first.name, 'Emergency');
     expect(products.first.interestRate, 12);
     expect(products.first.maximumAmount, 50000);
+  });
+
+  test('createProduct posts snake_case body', () async {
+    final product = await repository.createProduct(
+      chamaId: 'c1',
+      input: const LoanProductInput(
+        name: 'Emergency',
+        description: 'Short term',
+        interestRate: 12,
+        minimumAmount: 1000,
+        maximumAmount: 50000,
+        maximumDuration: 12,
+        gracePeriodDays: 7,
+        processingFee: 100,
+        isActive: true,
+      ),
+    );
+
+    expect(product.id, 'p-created');
+    expect(product.name, 'Emergency');
+    expect(api.lastProductBody?['interest_rate'], '12.00');
+    expect(api.lastProductBody?['minimum_amount'], '1000.00');
+    expect(api.lastProductBody?['is_active'], isTrue);
+  });
+
+  test('updateProduct patches product fields', () async {
+    api.products = [
+      const LoanProductDto(
+        id: 'p1',
+        chamaId: 'c1',
+        name: 'Emergency',
+        interestRate: '12.00',
+        minimumAmount: '1000',
+        maximumAmount: '50000',
+        maximumDuration: 12,
+        gracePeriodDays: 7,
+        processingFee: '100',
+        isActive: true,
+      ),
+    ];
+
+    final product = await repository.updateProduct(
+      chamaId: 'c1',
+      productId: 'p1',
+      input: const LoanProductInput(
+        name: 'Emergency Plus',
+        interestRate: 14,
+        minimumAmount: 2000,
+        maximumAmount: 60000,
+        maximumDuration: 18,
+        isActive: false,
+      ),
+    );
+
+    expect(product.name, 'Emergency Plus');
+    expect(product.isActive, isFalse);
+    expect(api.lastProductBody?['name'], 'Emergency Plus');
+  });
+
+  test('deleteProduct removes product', () async {
+    api.products = [
+      const LoanProductDto(
+        id: 'p1',
+        chamaId: 'c1',
+        name: 'Emergency',
+        interestRate: '12.00',
+        minimumAmount: '1000',
+        maximumAmount: '50000',
+        maximumDuration: 12,
+        gracePeriodDays: 0,
+        processingFee: '0',
+        isActive: true,
+      ),
+    ];
+
+    await repository.deleteProduct(chamaId: 'c1', productId: 'p1');
+    expect(api.products, isEmpty);
   });
 
   test('apply submits snake_case body and returns pending app', () async {

@@ -7,6 +7,7 @@ import '../../core/theme/app_spacing.dart';
 import '../../shared/auth/session_cleanup.dart';
 import '../../features/auth/presentation/providers/auth_providers.dart';
 import '../components/components.dart';
+import 'navigation_provider.dart';
 import 'quick_action_tile.dart';
 import 'role_navigation_service.dart';
 
@@ -17,7 +18,8 @@ class MoreTabScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final user = ref.watch(authControllerProvider).user;
-    final actions = RoleNavigationService.moreMenuActions();
+    final chamaId = ref.watch(shellNavigationContextProvider).chamaId;
+    final actions = RoleNavigationService.moreMenuActions(chamaId: chamaId);
 
     return Scaffold(
       appBar: AppBar(title: const Text('More')),

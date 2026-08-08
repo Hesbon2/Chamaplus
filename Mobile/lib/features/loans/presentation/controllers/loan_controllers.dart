@@ -376,3 +376,107 @@ class ApplyLoanController extends StateNotifier<ApplyLoanState> {
     }
   }
 }
+
+class ManageLoanProductState {
+  const ManageLoanProductState({
+    this.isSubmitting = false,
+    this.errorMessage,
+    this.product,
+  });
+
+  final bool isSubmitting;
+  final String? errorMessage;
+  final LoanProduct? product;
+
+  ManageLoanProductState copyWith({
+    bool? isSubmitting,
+    String? errorMessage,
+    LoanProduct? product,
+    bool clearError = false,
+  }) {
+    return ManageLoanProductState(
+      isSubmitting: isSubmitting ?? this.isSubmitting,
+      errorMessage: clearError ? null : (errorMessage ?? this.errorMessage),
+      product: product ?? this.product,
+    );
+  }
+}
+
+class ManageLoanProductController
+    extends StateNotifier<ManageLoanProductState> {
+  ManageLoanProductController(this._repository)
+      : super(const ManageLoanProductState());
+
+  final LoanRepository _repository;
+
+  Future<LoanProduct?> create({
+    required String chamaId,
+    required LoanProductInput input,
+  }) async {
+    state = state.copyWith(isSubmitting: true, clearError: true);
+    try {
+      final product = await _repository.createProduct(
+        chamaId: chamaId,
+        input: input,
+      );
+      if (!mounted) return null;
+      state = state.copyWith(isSubmitting: false, product: product);
+      return product;
+    } catch (error) {
+      if (!mounted) return null;
+      state = state.copyWith(
+        isSubmitting: false,
+        errorMessage: error.toString(),
+      );
+      return null;
+    }
+  }
+
+  Future<LoanProduct?> update({
+    required String chamaId,
+    required String productId,
+    required LoanProductInput input,
+  }) async {
+    state = state.copyWith(isSubmitting: true, clearError: true);
+    try {
+      final product = await _repository.updateProduct(
+        chamaId: chamaId,
+        productId: productId,
+        input: input,
+      );
+      if (!mounted) return null;
+      state = state.copyWith(isSubmitting: false, product: product);
+      return product;
+    } catch (error) {
+      if (!mounted) return null;
+      state = state.copyWith(
+        isSubmitting: false,
+        errorMessage: error.toString(),
+      );
+      return null;
+    }
+  }
+
+  Future<bool> delete({
+    required String chamaId,
+    required String productId,
+  }) async {
+    state = state.copyWith(isSubmitting: true, clearError: true);
+    try {
+      await _repository.deleteProduct(
+        chamaId: chamaId,
+        productId: productId,
+      );
+      if (!mounted) return false;
+      state = state.copyWith(isSubmitting: false);
+      return true;
+    } catch (error) {
+      if (!mounted) return false;
+      state = state.copyWith(
+        isSubmitting: false,
+        errorMessage: error.toString(),
+      );
+      return false;
+    }
+  }
+}

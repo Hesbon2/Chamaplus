@@ -116,6 +116,11 @@ final applyLoanControllerProvider =
   (ref) => ApplyLoanController(ref.watch(loanRepositoryProvider)),
 );
 
+final manageLoanProductControllerProvider = StateNotifierProvider.autoDispose<
+    ManageLoanProductController, ManageLoanProductState>(
+  (ref) => ManageLoanProductController(ref.watch(loanRepositoryProvider)),
+);
+
 /// Active loan products for dropdowns / calculator.
 final activeLoanProductsProvider =
     FutureProvider.autoDispose.family<List<LoanProduct>, String>(

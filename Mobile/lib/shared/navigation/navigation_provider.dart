@@ -5,6 +5,7 @@ import '../../features/dashboard/domain/entities/dashboard.dart';
 import '../../features/dashboard/presentation/providers/dashboard_provider.dart';
 import '../../features/notifications/presentation/providers/notification_providers.dart';
 import 'bottom_nav_item.dart';
+import 'role_navigation_service.dart';
 
 /// Shell tab indices for [StatefulShellRoute.indexedStack].
 abstract final class ShellTabIndex {
@@ -72,6 +73,13 @@ final shellNavigationContextProvider = Provider<ShellNavigationContext>((ref) {
   return ShellNavigationContext(
     chamaId: data.chamaId,
     roleLabel: data.userRole,
+  );
+});
+
+/// Normalized membership role for the active chama (from dashboard).
+final currentMemberRoleProvider = Provider<AppMemberRole>((ref) {
+  return AppMemberRole.fromLabel(
+    ref.watch(shellNavigationContextProvider).roleLabel,
   );
 });
 

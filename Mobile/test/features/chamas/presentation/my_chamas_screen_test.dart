@@ -91,6 +91,33 @@ class _FakeRepo implements ChamaRepository {
   Future<Membership> rejectJoinRequest(String membershipId) {
     throw UnimplementedError();
   }
+
+  @override
+  Future<Membership> updateMembershipRole({
+    required String membershipId,
+    required String role,
+  }) {
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<Membership> updateMembershipStatus({
+    required String membershipId,
+    required MembershipStatus status,
+  }) {
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<List<Membership>> listPendingInvitations() async => const [];
+
+  @override
+  Future<Membership> acceptInvitation(String membershipId) =>
+      throw UnimplementedError();
+
+  @override
+  Future<Membership> declineInvitation(String membershipId) =>
+      throw UnimplementedError();
 }
 
 void main() {
