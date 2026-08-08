@@ -18,7 +18,10 @@ Future<void> main() async {
 
   try {
     await EnvConfig.load();
-    AppLogger.debug('Environment loaded');
+    AppLogger.debug(
+      'Environment loaded: ${EnvConfig.environment.name} '
+      '(${EnvConfig.envFileName}) → ${EnvConfig.apiBaseUrl}',
+    );
   } catch (error, stackTrace) {
     AppLogger.error('Failed to load .env', error, stackTrace);
   }

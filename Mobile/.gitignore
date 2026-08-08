@@ -44,6 +44,7 @@ app.*.map.json
 
 # Secrets / signing
 .env
+.env.local
 android/key.properties
 android/**/*.jks
 android/**/*.keystore

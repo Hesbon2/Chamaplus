@@ -1,14 +1,16 @@
 """
 WSGI config for chamaplus_backend project.
-"""
 
-import os
+Defaults to production. Override with DJANGO_SETTINGS_MODULE or APP_ENV.
+"""
 
 from django.core.wsgi import get_wsgi_application
 
-os.environ.setdefault(
-    "DJANGO_SETTINGS_MODULE",
-    "chamaplus_backend.settings.production",
+from chamaplus_backend.env_bootstrap import (
+    PRODUCTION_SETTINGS,
+    bootstrap_settings_module,
 )
+
+bootstrap_settings_module(default=PRODUCTION_SETTINGS)
 
 application = get_wsgi_application()

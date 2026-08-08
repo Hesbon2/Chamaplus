@@ -41,6 +41,13 @@ class DiagnosticsScreen extends ConsumerWidget {
           ),
           const SizedBox(height: AppSpacing.sm),
           SettingsTile(
+            title: 'Environment',
+            subtitle: EnvConfig.environment.name,
+            icon: Icons.tune,
+            trailing: const SizedBox.shrink(),
+          ),
+          const SizedBox(height: AppSpacing.sm),
+          SettingsTile(
             title: 'API base URL',
             subtitle: EnvConfig.apiBaseUrl,
             icon: Icons.cloud_outlined,

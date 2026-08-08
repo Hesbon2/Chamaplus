@@ -8,15 +8,23 @@
 
 ## Configure environment
 
-1. Copy or edit `Mobile/.env`:
+Environment files ship with the app:
 
-```env
-API_BASE_URL=https://api.example.com/api/v1
-API_CONNECT_TIMEOUT_MS=15000
-API_RECEIVE_TIMEOUT_MS=15000
+| File | When used |
+|------|-----------|
+| `.env.development` | Debug / profile (`flutter run`) |
+| `.env.production` | Release builds |
+
+Force or override:
+
+```bash
+flutter run --dart-define=APP_ENV=production
+flutter build apk --release --dart-define=API_BASE_URL=https://api.example.com/api/v1
 ```
 
-2. For local Django over USB/emulator, `http://10.0.2.2:8000/api/v1` (emulator) or your LAN IP may be used. Cleartext is currently allowed for RC1 development; disable for Play production once HTTPS is mandatory.
+Android emulator: development loopback URLs are rewritten to `10.0.2.2` automatically. See [`LOCAL_SETUP.md`](./LOCAL_SETUP.md).
+
+For a one-off local override without editing committed files, prefer `--dart-define=API_BASE_URL=...`.
 
 ## Signing (Android)
 

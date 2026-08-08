@@ -18,7 +18,13 @@ Shared frameworks:
 - Charts — `lib/shared/charts/`
 - Reports — `lib/shared/reports/` + feature screens in `lib/features/reports/`
 
-API base URL defaults to `http://127.0.0.1:8000/api/v1` (see `.env` / `EnvConfig`).
+API base URL is selected automatically via `EnvConfig`:
+
+- Debug / profile → `.env.development` (Android emulator rewrites `127.0.0.1` → `10.0.2.2`)
+- Release → `.env.production`
+- Override: `--dart-define=APP_ENV=production` or `--dart-define=API_BASE_URL=...`
+
+See [`Docs/LOCAL_SETUP.md`](../Docs/LOCAL_SETUP.md).
 
 ## Application shell
 

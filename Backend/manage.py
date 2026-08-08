@@ -1,15 +1,16 @@
 #!/usr/bin/env python
 """Django's command-line utility for administrative tasks."""
-import os
 import sys
 
 
 def main():
     """Run administrative tasks."""
-    os.environ.setdefault(
-        "DJANGO_SETTINGS_MODULE",
-        "chamaplus_backend.settings.development",
+    from chamaplus_backend.env_bootstrap import (
+        DEVELOPMENT_SETTINGS,
+        bootstrap_settings_module,
     )
+
+    bootstrap_settings_module(default=DEVELOPMENT_SETTINGS)
     try:
         from django.core.management import execute_from_command_line
     except ImportError as exc:
