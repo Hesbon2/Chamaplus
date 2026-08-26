@@ -140,6 +140,26 @@ class MonthlyReportView(EnvelopeAPIView):
         )
 
 
+class DefaultersReportView(EnvelopeAPIView):
+    permission_classes = [IsAuthenticated, IsChamaTreasurerOrChairperson]
+
+    @extend_schema(
+        tags=["Reports"],
+        summary="Contribution and loan defaulters report",
+    )
+    def get(self, request, chama_id):
+        chama = ChamaService.get_chama(chama_id)
+        cycle_id = request.query_params.get("cycle_id")
+        defaulter_type = request.query_params.get("type", "all")
+        data = ReportService.get_defaulters_report(
+            chama, cycle_id=cycle_id, defaulter_type=defaulter_type
+        )
+        return success_response(
+            data=data,
+            message="Defaulters report retrieved successfully.",
+        )
+
+
 class ReportExportView(EnvelopeAPIView):
     permission_classes = [IsAuthenticated, IsChamaTreasurerOrChairperson]
 
@@ -154,6 +174,7 @@ class ReportExportView(EnvelopeAPIView):
         cycle_id = request.query_params.get("cycle_id")
         year = request.query_params.get("year")
         month = request.query_params.get("month")
+        defaulter_type = request.query_params.get("type")
 
         kwargs = {
             "date_from": date_from,
@@ -161,6 +182,7 @@ class ReportExportView(EnvelopeAPIView):
             "cycle_id": cycle_id,
             "year": year,
             "month": month,
+            "defaulter_type": defaulter_type,
         }
         kwargs = {k: v for k, v in kwargs.items() if v is not None}
 

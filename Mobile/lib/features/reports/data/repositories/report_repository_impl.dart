@@ -169,6 +169,20 @@ class ReportRepositoryImpl implements ReportRepository {
   }
 
   @override
+  Future<DefaultersReport> getDefaultersReport({
+    required String chamaId,
+    String? cycleId,
+    String type = 'all',
+  }) async {
+    final dto = await _api.getDefaultersReport(
+      chamaId: chamaId,
+      cycleId: cycleId,
+      type: type,
+    );
+    return dto.toEntity();
+  }
+
+  @override
   Future<ReportsHomeData> getReportsHome({
     required String chamaId,
   }) async {

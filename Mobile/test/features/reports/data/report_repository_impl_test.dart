@@ -100,6 +100,34 @@ class FakeReportApi implements ReportRemoteDataSource {
   }
 
   @override
+  Future<DefaultersReportDto> getDefaultersReport({
+    required String chamaId,
+    String? cycleId,
+    String type = 'all',
+  }) async {
+    if (error != null) throw error!;
+    return DefaultersReportDto(const {
+      'currency': 'KES',
+      'contribution_defaulters_count': 1,
+      'loan_defaulters_count': 0,
+      'defaulters': [
+        {
+          'member_id': 'u1',
+          'membership_id': 'm1',
+          'full_name': 'Jane Doe',
+          'phone_number': '+254700000001',
+          'role': 'Member',
+          'type': 'contribution',
+          'cycle_id': 'c1',
+          'cycle_name': 'July',
+          'expected_amount': '5000.00',
+          'penalty_amount': '0.00',
+        },
+      ],
+    });
+  }
+
+  @override
   Future<MonthlyReportDto> getMonthlyReport({
     required String chamaId,
     required int year,
@@ -280,6 +308,18 @@ class _FailingMonthlyApi implements ReportRemoteDataSource {
     required String memberId,
   }) =>
       _inner.getMemberFinancialReport(chamaId: chamaId, memberId: memberId);
+
+  @override
+  Future<DefaultersReportDto> getDefaultersReport({
+    required String chamaId,
+    String? cycleId,
+    String type = 'all',
+  }) =>
+      _inner.getDefaultersReport(
+        chamaId: chamaId,
+        cycleId: cycleId,
+        type: type,
+      );
 
   @override
   Future<MonthlyReportDto> getMonthlyReport({

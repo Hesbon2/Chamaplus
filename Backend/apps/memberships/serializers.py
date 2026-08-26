@@ -33,6 +33,10 @@ class ChamaSummarySerializer(serializers.Serializer):
 class MembershipSerializer(serializers.ModelSerializer):
     user = UserSummarySerializer(read_only=True)
     role = RoleSummarySerializer(read_only=True)
+    contributions_total = serializers.SerializerMethodField()
+    contributions_count = serializers.SerializerMethodField()
+    active_loans_count = serializers.SerializerMethodField()
+    outstanding_loans_balance = serializers.SerializerMethodField()
 
     class Meta:
         model = Membership
@@ -44,8 +48,34 @@ class MembershipSerializer(serializers.ModelSerializer):
             "joined_at",
             "created_at",
             "updated_at",
+            "contributions_total",
+            "contributions_count",
+            "active_loans_count",
+            "outstanding_loans_balance",
         )
         read_only_fields = fields
+
+    def _annotated(self, obj, attr, default):
+        value = getattr(obj, attr, default)
+        return default if value is None else value
+
+    def get_contributions_total(self, obj):
+        value = self._annotated(obj, "contributions_total", None)
+        if value is None:
+            return "0.00"
+        return str(value)
+
+    def get_contributions_count(self, obj):
+        return int(self._annotated(obj, "contributions_count", 0))
+
+    def get_active_loans_count(self, obj):
+        return int(self._annotated(obj, "active_loans_count", 0))
+
+    def get_outstanding_loans_balance(self, obj):
+        value = self._annotated(obj, "outstanding_loans_balance", None)
+        if value is None:
+            return "0.00"
+        return str(value)
 
 
 class PendingInvitationSerializer(serializers.ModelSerializer):

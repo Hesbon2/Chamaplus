@@ -4,6 +4,7 @@ from apps.audit.views import ChamaAuditLogListView
 from apps.reports.views import (
     ContributionsReportView,
     DashboardView,
+    DefaultersReportView,
     FinancialReportView,
     LoansReportView,
     MemberFinancialReportView,
@@ -20,6 +21,7 @@ report_patterns = [
     path("repayments/", RepaymentsReportView.as_view(), name="report-repayments"),
     path("financial/", FinancialReportView.as_view(), name="report-financial"),
     path("monthly/", MonthlyReportView.as_view(), name="report-monthly"),
+    path("defaulters/", DefaultersReportView.as_view(), name="report-defaulters"),
     path(
         "members/<uuid:member_id>/financial/",
         MemberFinancialReportView.as_view(),

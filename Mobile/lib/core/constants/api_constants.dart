@@ -51,6 +51,8 @@ class ApiConstants {
       '/chamas/$chamaId/reports/repayments/';
   static String chamaFinancialReport(String chamaId) =>
       '/chamas/$chamaId/reports/financial/';
+  static String chamaDefaultersReport(String chamaId) =>
+      '/chamas/$chamaId/reports/defaulters/';
   static String chamaReportExport(String chamaId, String reportType) =>
       '/chamas/$chamaId/reports/$reportType/export/';
   static String membershipStatus(String membershipId) =>

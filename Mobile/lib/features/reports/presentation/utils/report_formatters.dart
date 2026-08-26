@@ -85,4 +85,35 @@ class ReportExportBuilders {
         )
         .toList();
   }
+
+  static Map<String, String> defaultersSummary(DefaultersReport report) => {
+        'Currency': report.currency,
+        'Contribution defaulters': '${report.contributionDefaultersCount}',
+        'Loan defaulters': '${report.loanDefaultersCount}',
+        'Total': '${report.totalCount}',
+      };
+
+  static List<Map<String, String>> defaultersRows(DefaultersReport report) {
+    return report.defaulters
+        .map(
+          (row) => {
+            'name': row.fullName,
+            'phone': row.phoneNumber,
+            'role': row.role ?? '',
+            'type': row.type.label,
+            'detail': row.type == DefaulterType.contribution
+                ? '${row.cycleName ?? 'Cycle'} · '
+                    '${ReportFormatters.money(
+                      row.expectedAmount ?? 0,
+                      currency: report.currency,
+                    )}'
+                : 'Outstanding ${ReportFormatters.money(
+                      row.outstandingBalance ?? 0,
+                      currency: report.currency,
+                    )}'
+                    '${row.dueDate != null ? ' · due ${DateFormat.yMMMd().format(row.dueDate!.toLocal())}' : ''}',
+          },
+        )
+        .toList();
+  }
 }

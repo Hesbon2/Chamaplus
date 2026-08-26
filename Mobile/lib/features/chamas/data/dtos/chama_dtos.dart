@@ -58,6 +58,10 @@ class MembershipDto {
     this.createdAt,
     this.chamaId,
     this.chamaName,
+    this.contributionsTotal = '0.00',
+    this.contributionsCount = 0,
+    this.activeLoansCount = 0,
+    this.outstandingLoansBalance = '0.00',
   });
 
   final String id;
@@ -68,6 +72,10 @@ class MembershipDto {
   final String? createdAt;
   final String? chamaId;
   final String? chamaName;
+  final String contributionsTotal;
+  final int contributionsCount;
+  final int activeLoansCount;
+  final String outstandingLoansBalance;
 
   factory MembershipDto.fromJson(Map<String, dynamic> json) {
     final chama = json['chama'];
@@ -86,6 +94,11 @@ class MembershipDto {
       createdAt: json['created_at'] as String?,
       chamaId: chamaId,
       chamaName: chamaName,
+      contributionsTotal: '${json['contributions_total'] ?? '0.00'}',
+      contributionsCount: _asInt(json['contributions_count']),
+      activeLoansCount: _asInt(json['active_loans_count']),
+      outstandingLoansBalance:
+          '${json['outstanding_loans_balance'] ?? '0.00'}',
     );
   }
 
@@ -99,8 +112,19 @@ class MembershipDto {
       createdAt: createdAt != null ? DateTime.tryParse(createdAt!) : null,
       chamaId: chamaId,
       chamaName: chamaName,
+      contributionsTotal: contributionsTotal,
+      contributionsCount: contributionsCount,
+      activeLoansCount: activeLoansCount,
+      outstandingLoansBalance: outstandingLoansBalance,
     );
   }
+}
+
+int _asInt(dynamic value) {
+  if (value == null) return 0;
+  if (value is int) return value;
+  if (value is num) return value.toInt();
+  return int.tryParse('$value') ?? 0;
 }
 
 class MemberUserDto {

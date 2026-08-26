@@ -135,3 +135,51 @@ class RepaymentTotalsDto {
 
   RepaymentTotals toEntity() => _repaymentTotals(raw);
 }
+
+class DefaultersReportDto {
+  const DefaultersReportDto(this.raw);
+  final Map<String, dynamic> raw;
+
+  factory DefaultersReportDto.fromJson(Map<String, dynamic> json) =>
+      DefaultersReportDto(json);
+
+  DefaultersReport toEntity() {
+    final rows = (raw['defaulters'] as List? ?? const [])
+        .whereType<Map>()
+        .map((row) {
+          final map = Map<String, dynamic>.from(row);
+          final expected = map['expected_amount'];
+          final penalty = map['penalty_amount'];
+          final outstanding = map['outstanding_balance'];
+          final dueRaw = map['due_date']?.toString();
+          return DefaulterRecord(
+            memberId: '${map['member_id'] ?? ''}',
+            membershipId: map['membership_id']?.toString(),
+            fullName: map['full_name']?.toString() ?? '',
+            phoneNumber: map['phone_number']?.toString() ?? '',
+            role: map['role']?.toString(),
+            type: DefaulterType.fromApi(map['type']?.toString()),
+            cycleId: map['cycle_id']?.toString(),
+            cycleName: map['cycle_name']?.toString(),
+            expectedAmount:
+                expected == null ? null : _asDouble(expected),
+            penaltyAmount: penalty == null ? null : _asDouble(penalty),
+            loanId: map['loan_id']?.toString(),
+            outstandingBalance:
+                outstanding == null ? null : _asDouble(outstanding),
+            dueDate: dueRaw == null || dueRaw.isEmpty
+                ? null
+                : DateTime.tryParse(dueRaw),
+          );
+        })
+        .toList();
+
+    return DefaultersReport(
+      currency: raw['currency'] as String? ?? 'KES',
+      contributionDefaultersCount:
+          _asInt(raw['contribution_defaulters_count']),
+      loanDefaultersCount: _asInt(raw['loan_defaulters_count']),
+      defaulters: rows,
+    );
+  }
+}

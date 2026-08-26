@@ -124,6 +124,19 @@ class _StubRepo implements ReportRepository {
       ),
     );
   }
+
+  @override
+  Future<DefaultersReport> getDefaultersReport({
+    required String chamaId,
+    String? cycleId,
+    String type = 'all',
+  }) async =>
+      const DefaultersReport(
+        currency: 'KES',
+        contributionDefaultersCount: 0,
+        loanDefaultersCount: 0,
+        defaulters: [],
+      );
 }
 
 void main() {

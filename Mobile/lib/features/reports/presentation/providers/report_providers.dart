@@ -120,6 +120,17 @@ final memberStatementProvider = StateNotifierProvider.autoDispose.family<
   return controller;
 });
 
+final defaultersReportProvider = StateNotifierProvider.autoDispose
+    .family<DefaultersReportController, ApiState<DefaultersReport>, String>(
+        (ref, chamaId) {
+  final controller = DefaultersReportController(
+    repository: ref.watch(reportRepositoryProvider),
+    chamaId: chamaId,
+  );
+  Future.microtask(controller.load);
+  return controller;
+});
+
 /// Resolves current user id for "my statement" when memberId is omitted.
 final currentUserIdProvider = Provider<String?>((ref) {
   return ref.watch(authControllerProvider).user?.id;

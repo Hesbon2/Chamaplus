@@ -112,6 +112,8 @@ class RoutePaths {
       '/chamas/$chamaId/reports/monthly';
   static String financialReport(String chamaId) =>
       '/chamas/$chamaId/reports/financial';
+  static String defaultersReport(String chamaId) =>
+      '/chamas/$chamaId/reports/defaulters';
   static String memberStatement(String chamaId, {String? memberId}) {
     final uri = Uri(
       path: '/chamas/$chamaId/reports/member-statement',

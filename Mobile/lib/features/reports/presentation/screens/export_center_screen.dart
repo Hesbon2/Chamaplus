@@ -117,6 +117,38 @@ class ExportCenterScreen extends ConsumerWidget {
     }
   }
 
+  Future<void> _exportDefaulters(BuildContext context, WidgetRef ref) async {
+    try {
+      final report =
+          await ref.read(reportRepositoryProvider).getDefaultersReport(
+                chamaId: chamaId,
+              );
+      if (!context.mounted) return;
+      await runReportExportFlow(
+        context,
+        ref,
+        buildRequest: (format) => ReportExportRequest(
+          title: 'Defaulters report',
+          fileName: 'defaulters_report',
+          format: format,
+          summary: ReportExportBuilders.defaultersSummary(report),
+          columns: const [
+            ReportColumn(key: 'name', label: 'Name'),
+            ReportColumn(key: 'phone', label: 'Phone'),
+            ReportColumn(key: 'role', label: 'Role'),
+            ReportColumn(key: 'type', label: 'Type'),
+            ReportColumn(key: 'detail', label: 'Detail'),
+          ],
+          rows: ReportExportBuilders.defaultersRows(report),
+        ),
+      );
+    } catch (error) {
+      if (context.mounted) {
+        AppSnackbar.error(context, 'Could not load defaulters: $error');
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     return Scaffold(
@@ -150,6 +182,18 @@ class ExportCenterScreen extends ConsumerWidget {
               expand: false,
               label: 'Export',
               onPressed: () => _exportFinancial(context, ref),
+            ),
+          ),
+          const SizedBox(height: AppSpacing.sm),
+          ReportCard(
+            title: 'Defaulters report',
+            subtitle: 'Missed contributions & overdue loans',
+            icon: Icons.warning_amber_outlined,
+            badgeLabel: 'PDF · CSV',
+            trailing: ExportButton(
+              expand: false,
+              label: 'Export',
+              onPressed: () => _exportDefaulters(context, ref),
             ),
           ),
           const SizedBox(height: AppSpacing.sm),

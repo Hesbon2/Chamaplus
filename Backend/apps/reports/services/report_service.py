@@ -1,6 +1,5 @@
 import csv
 import io
-from decimal import Decimal
 
 from django.http import HttpResponse
 from django.utils import timezone
@@ -17,7 +16,10 @@ class ReportService:
         "repayments": "_repayments_report",
         "financial": "_financial_report",
         "monthly": "_monthly_report",
+        "defaulters": "_defaulters_report",
     }
+
+    VALID_DEFAULTER_TYPES = {"all", "contribution", "loan"}
 
     @staticmethod
     def _parse_dates(date_from, date_to):
@@ -51,6 +53,17 @@ class ReportService:
         year = int(year or now.year)
         month = int(month or now.month)
         return ReportRepository.monthly_summary(chama, year, month)
+
+    @staticmethod
+    def get_defaulters_report(chama, cycle_id=None, defaulter_type="all", **_kwargs):
+        defaulter_type = (defaulter_type or "all").lower()
+        if defaulter_type not in ReportService.VALID_DEFAULTER_TYPES:
+            raise DomainError(
+                "Invalid defaulter type. Use all, contribution, or loan."
+            )
+        return ReportRepository.defaulters_report(
+            chama, cycle_id=cycle_id, defaulter_type=defaulter_type
+        )
 
     @staticmethod
     def get_dashboard(chama, user):
@@ -109,9 +122,34 @@ class ReportService:
             "repayments": ReportService.get_repayments_report,
             "financial": ReportService.get_financial_report,
             "monthly": ReportService.get_monthly_report,
+            "defaulters": ReportService.get_defaulters_report,
         }
         if report_type not in builders:
             raise DomainError("Invalid report type.")
+
+        # Strip kwargs that do not apply to the selected builder.
+        if report_type == "defaulters":
+            kwargs = {
+                k: v
+                for k, v in kwargs.items()
+                if k in ("cycle_id", "defaulter_type")
+            }
+        elif report_type == "monthly":
+            kwargs = {
+                k: v for k, v in kwargs.items() if k in ("year", "month")
+            }
+        elif report_type == "contributions":
+            kwargs = {
+                k: v
+                for k, v in kwargs.items()
+                if k in ("date_from", "date_to", "cycle_id")
+            }
+        else:
+            kwargs = {
+                k: v
+                for k, v in kwargs.items()
+                if k in ("date_from", "date_to")
+            }
 
         data = builders[report_type](chama, **kwargs)
 
@@ -126,12 +164,27 @@ class ReportService:
         buffer = io.StringIO()
         writer = csv.writer(buffer)
         writer.writerow(["report_type", report_type])
-        for key, value in data.items():
+
+        rows = data.get("defaulters") if isinstance(data, dict) else None
+        summary = (
+            {k: v for k, v in data.items() if k != "defaulters"}
+            if isinstance(data, dict)
+            else data
+        )
+
+        for key, value in summary.items():
             if isinstance(value, dict):
                 for sub_key, sub_value in value.items():
                     writer.writerow([f"{key}.{sub_key}", sub_value])
             else:
                 writer.writerow([key, value])
+
+        if isinstance(rows, list) and rows:
+            writer.writerow([])
+            headers = list(rows[0].keys())
+            writer.writerow(headers)
+            for row in rows:
+                writer.writerow([row.get(h, "") for h in headers])
 
         response = HttpResponse(buffer.getvalue(), content_type="text/csv")
         response["Content-Disposition"] = f'attachment; filename="{report_type}.csv"'
@@ -153,12 +206,46 @@ class ReportService:
         y = 750
         pdf.drawString(50, y, f"ChamaPlus {report_type.title()} Report")
         y -= 30
-        for key, value in data.items():
+
+        rows = data.get("defaulters") if isinstance(data, dict) else None
+        summary = (
+            {k: v for k, v in data.items() if k != "defaulters"}
+            if isinstance(data, dict)
+            else data
+        )
+
+        for key, value in summary.items():
             pdf.drawString(50, y, f"{key}: {value}")
             y -= 20
             if y < 50:
                 pdf.showPage()
                 y = 750
+
+        if isinstance(rows, list) and rows:
+            y -= 10
+            pdf.drawString(50, y, "Defaulters")
+            y -= 20
+            for row in rows:
+                line = (
+                    f"{row.get('full_name')} | {row.get('type')} | "
+                    f"{row.get('phone_number')}"
+                )
+                if row.get("type") == "contribution":
+                    line += (
+                        f" | {row.get('cycle_name')} | "
+                        f"expected {row.get('expected_amount')}"
+                    )
+                else:
+                    line += (
+                        f" | outstanding {row.get('outstanding_balance')} | "
+                        f"due {row.get('due_date')}"
+                    )
+                pdf.drawString(50, y, line[:110])
+                y -= 18
+                if y < 50:
+                    pdf.showPage()
+                    y = 750
+
         pdf.save()
         buffer.seek(0)
 

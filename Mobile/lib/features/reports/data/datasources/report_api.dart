@@ -41,6 +41,12 @@ abstract class ReportRemoteDataSource {
     required String chamaId,
     required String memberId,
   });
+
+  Future<DefaultersReportDto> getDefaultersReport({
+    required String chamaId,
+    String? cycleId,
+    String type = 'all',
+  });
 }
 
 class ReportApi implements ReportRemoteDataSource {
@@ -144,6 +150,22 @@ class ReportApi implements ReportRemoteDataSource {
       ApiConstants.memberFinancialReport(chamaId, memberId),
     );
     return MemberStatementDto.fromJson(_unwrapMap(response.data));
+  }
+
+  @override
+  Future<DefaultersReportDto> getDefaultersReport({
+    required String chamaId,
+    String? cycleId,
+    String type = 'all',
+  }) async {
+    final response = await _apiClient.get<Map<String, dynamic>>(
+      ApiConstants.chamaDefaultersReport(chamaId),
+      queryParameters: {
+        'type': type,
+        if (cycleId != null) 'cycle_id': cycleId,
+      },
+    );
+    return DefaultersReportDto.fromJson(_unwrapMap(response.data));
   }
 
   /// Helper for callers that already have DateTime filters.

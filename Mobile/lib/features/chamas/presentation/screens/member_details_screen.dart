@@ -295,6 +295,39 @@ class MemberDetailsScreen extends ConsumerWidget {
                     ],
                   ),
                 ),
+                const SizedBox(height: AppSpacing.md),
+                const SectionHeader(title: 'Financial summary'),
+                AppCard(
+                  padding: EdgeInsets.zero,
+                  child: Column(
+                    children: [
+                      InfoTile(
+                        title: 'Total contributions',
+                        subtitle: 'KES ${member.contributionsTotal}',
+                        leading: const Icon(Icons.payments_outlined),
+                      ),
+                      const Divider(height: 1),
+                      InfoTile(
+                        title: 'Contribution count',
+                        subtitle: '${member.contributionsCount}',
+                        leading: const Icon(Icons.receipt_long_outlined),
+                      ),
+                      const Divider(height: 1),
+                      InfoTile(
+                        title: 'Active loans',
+                        subtitle: '${member.activeLoansCount}',
+                        leading: const Icon(Icons.account_balance_outlined),
+                      ),
+                      const Divider(height: 1),
+                      InfoTile(
+                        title: 'Outstanding loans',
+                        subtitle: 'KES ${member.outstandingLoansBalance}',
+                        leading:
+                            const Icon(Icons.account_balance_wallet_outlined),
+                      ),
+                    ],
+                  ),
+                ),
                 if (canManage) ...[
                   const SizedBox(height: AppSpacing.md),
                   const SectionHeader(title: 'Management'),

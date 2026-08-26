@@ -56,6 +56,7 @@ import '../../features/onboarding/presentation/screens/welcome_screen.dart';
 import '../../features/chamas/presentation/screens/pending_invitations_screen.dart';
 import '../../features/profile/presentation/screens/edit_profile_screen.dart';
 import '../../features/profile/presentation/screens/profile_screen.dart';
+import '../../features/reports/presentation/screens/defaulters_report_screen.dart';
 import '../../features/reports/presentation/screens/export_center_screen.dart';
 import '../../features/reports/presentation/screens/financial_report_screen.dart';
 import '../../features/reports/presentation/screens/member_statement_screen.dart';
@@ -493,6 +494,14 @@ List<RouteBase> _chamaScopedRoutes() {
           path: 'financial',
           name: 'financial-report',
           builder: (context, state) => FinancialReportScreen(
+            chamaId: state.pathParameters['chamaId']!,
+          ),
+        ),
+        GoRoute(
+          parentNavigatorKey: _rootNavigatorKey,
+          path: 'defaulters',
+          name: 'defaulters-report',
+          builder: (context, state) => DefaultersReportScreen(
             chamaId: state.pathParameters['chamaId']!,
           ),
         ),

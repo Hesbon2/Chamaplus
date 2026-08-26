@@ -100,6 +100,19 @@ class _FakeRepo implements ReportRepository {
   @override
   Future<ReportsHomeData> getReportsHome({required String chamaId}) async =>
       _home;
+
+  @override
+  Future<DefaultersReport> getDefaultersReport({
+    required String chamaId,
+    String? cycleId,
+    String type = 'all',
+  }) async =>
+      const DefaultersReport(
+        currency: 'KES',
+        contributionDefaultersCount: 1,
+        loanDefaultersCount: 0,
+        defaulters: [],
+      );
 }
 
 const _financial = FinancialReport(
@@ -170,6 +183,7 @@ void main() {
     expect(find.text('Report library'), findsOneWidget);
     expect(find.text('Monthly report'), findsOneWidget);
     expect(find.text('Financial report'), findsOneWidget);
+    expect(find.text('Defaulters report'), findsOneWidget);
     expect(find.byType(SummaryMetricTile), findsNWidgets(4));
 
     await tester.scrollUntilVisible(
@@ -197,6 +211,7 @@ void main() {
     expect(find.text('Export center'), findsOneWidget);
     expect(find.text('Monthly report'), findsOneWidget);
     expect(find.text('Financial report'), findsOneWidget);
+    expect(find.text('Defaulters report'), findsOneWidget);
     expect(find.text('My member statement'), findsOneWidget);
   });
 

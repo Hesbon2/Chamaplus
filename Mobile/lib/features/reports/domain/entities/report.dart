@@ -153,3 +153,83 @@ class ReportsHomeData {
   final ReportsAnalytics analytics;
   final MonthlyReport? latestMonth;
 }
+
+/// Type of financial default in the defaulters report.
+enum DefaulterType {
+  contribution,
+  loan,
+  unknown;
+
+  static DefaulterType fromApi(String? value) {
+    switch (value) {
+      case 'contribution':
+        return DefaulterType.contribution;
+      case 'loan':
+        return DefaulterType.loan;
+      default:
+        return DefaulterType.unknown;
+    }
+  }
+
+  String get label {
+    switch (this) {
+      case DefaulterType.contribution:
+        return 'Contribution';
+      case DefaulterType.loan:
+        return 'Loan';
+      case DefaulterType.unknown:
+        return 'Unknown';
+    }
+  }
+}
+
+/// One row in the defaulters report.
+class DefaulterRecord {
+  const DefaulterRecord({
+    required this.memberId,
+    required this.fullName,
+    required this.phoneNumber,
+    required this.type,
+    this.membershipId,
+    this.role,
+    this.cycleId,
+    this.cycleName,
+    this.expectedAmount,
+    this.penaltyAmount,
+    this.loanId,
+    this.outstandingBalance,
+    this.dueDate,
+  });
+
+  final String memberId;
+  final String? membershipId;
+  final String fullName;
+  final String phoneNumber;
+  final String? role;
+  final DefaulterType type;
+  final String? cycleId;
+  final String? cycleName;
+  final double? expectedAmount;
+  final double? penaltyAmount;
+  final String? loanId;
+  final double? outstandingBalance;
+  final DateTime? dueDate;
+}
+
+/// Contribution and loan defaulters for a chama.
+class DefaultersReport {
+  const DefaultersReport({
+    required this.currency,
+    required this.contributionDefaultersCount,
+    required this.loanDefaultersCount,
+    required this.defaulters,
+  });
+
+  final String currency;
+  final int contributionDefaultersCount;
+  final int loanDefaultersCount;
+  final List<DefaulterRecord> defaulters;
+
+  int get totalCount =>
+      contributionDefaultersCount + loanDefaultersCount;
+}

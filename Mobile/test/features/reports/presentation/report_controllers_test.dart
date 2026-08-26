@@ -81,6 +81,21 @@ class FakeReportRepository implements ReportRepository {
   }
 
   @override
+  Future<DefaultersReport> getDefaultersReport({
+    required String chamaId,
+    String? cycleId,
+    String type = 'all',
+  }) async {
+    if (error != null) throw error!;
+    return const DefaultersReport(
+      currency: 'KES',
+      contributionDefaultersCount: 0,
+      loanDefaultersCount: 0,
+      defaulters: [],
+    );
+  }
+
+  @override
   Future<MonthlyReport> getMonthlyReport({
     required String chamaId,
     required int year,

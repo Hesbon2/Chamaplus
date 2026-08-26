@@ -1,14 +1,26 @@
-from datetime import datetime
+import calendar
+from datetime import datetime, timedelta
 from decimal import Decimal
 
 from django.db.models import Count, Sum
 from django.utils import timezone
 
+from apps.contributions.constants import OPEN
 from apps.contributions.models import Contribution, ContributionCycle
 from apps.credit_scoring.services.credit_scoring_service import CreditScoringService
 from apps.loans.constants import APPROVED, DISBURSED, PENDING, REPAID
 from apps.loans.models import LoanApplication, LoanRepayment
+from apps.memberships.constants import ACTIVE
 from apps.memberships.models import Membership
+
+
+def _add_months(source, months):
+    """Add calendar months to a date/datetime, clamping day to month length."""
+    month_index = source.month - 1 + months
+    year = source.year + month_index // 12
+    month = month_index % 12 + 1
+    day = min(source.day, calendar.monthrange(year, month)[1])
+    return source.replace(year=year, month=month, day=day)
 
 
 class ReportRepository:
@@ -130,4 +142,132 @@ class ReportRepository:
             "repayments": ReportRepository.repayment_summary(
                 chama, date_from=start, date_to=end
             ),
+        }
+
+    @staticmethod
+    def _member_display(membership):
+        user = membership.user
+        full_name = f"{user.first_name} {user.last_name}".strip() or user.phone_number
+        return {
+            "member_id": str(user.id),
+            "membership_id": str(membership.id),
+            "full_name": full_name,
+            "phone_number": user.phone_number,
+            "role": membership.role.name,
+        }
+
+    @staticmethod
+    def _contribution_defaulters(chama, cycle_id=None):
+        cycles = ContributionCycle.objects.filter(chama=chama, status=OPEN)
+        if cycle_id:
+            cycles = cycles.filter(pk=cycle_id)
+        cycles = list(cycles)
+        if not cycles:
+            return []
+
+        memberships = list(
+            Membership.objects.filter(chama=chama, status=ACTIVE).select_related(
+                "user", "role"
+            )
+        )
+        paid_pairs = set(
+            Contribution.objects.filter(
+                cycle__in=cycles, member_id__in=[m.user_id for m in memberships]
+            ).values_list("cycle_id", "member_id")
+        )
+
+        rows = []
+        for cycle in cycles:
+            for membership in memberships:
+                if (cycle.id, membership.user_id) in paid_pairs:
+                    continue
+                row = ReportRepository._member_display(membership)
+                row.update(
+                    {
+                        "type": "contribution",
+                        "cycle_id": str(cycle.id),
+                        "cycle_name": cycle.name,
+                        "expected_amount": str(cycle.contribution_amount),
+                        "penalty_amount": str(cycle.penalty_amount),
+                        "loan_id": None,
+                        "outstanding_balance": None,
+                        "due_date": None,
+                    }
+                )
+                rows.append(row)
+        return rows
+
+    @staticmethod
+    def _loan_defaulters(chama):
+        now = timezone.now()
+        loans = LoanApplication.objects.filter(
+            chama=chama,
+            status=DISBURSED,
+            outstanding_balance__gt=Decimal("0.00"),
+        ).select_related("applicant", "loan_product")
+        membership_by_user = {
+            m.user_id: m
+            for m in Membership.objects.filter(chama=chama).select_related(
+                "user", "role"
+            )
+        }
+
+        rows = []
+        for loan in loans:
+            start = loan.approved_at or loan.applied_at or loan.updated_at
+            if start is None:
+                continue
+            due = _add_months(start, loan.requested_duration) + timedelta(
+                days=loan.loan_product.grace_period_days
+            )
+            if due >= now:
+                continue
+
+            membership = membership_by_user.get(loan.applicant_id)
+            if membership is None:
+                full_name = (
+                    f"{loan.applicant.first_name} {loan.applicant.last_name}".strip()
+                    or loan.applicant.phone_number
+                )
+                base = {
+                    "member_id": str(loan.applicant_id),
+                    "membership_id": None,
+                    "full_name": full_name,
+                    "phone_number": loan.applicant.phone_number,
+                    "role": None,
+                }
+            else:
+                base = ReportRepository._member_display(membership)
+
+            base.update(
+                {
+                    "type": "loan",
+                    "cycle_id": None,
+                    "cycle_name": None,
+                    "expected_amount": None,
+                    "penalty_amount": None,
+                    "loan_id": str(loan.id),
+                    "outstanding_balance": str(loan.outstanding_balance),
+                    "due_date": due.date().isoformat(),
+                }
+            )
+            rows.append(base)
+        return rows
+
+    @staticmethod
+    def defaulters_report(chama, cycle_id=None, defaulter_type="all"):
+        contribution_rows = []
+        loan_rows = []
+        if defaulter_type in ("all", "contribution"):
+            contribution_rows = ReportRepository._contribution_defaulters(
+                chama, cycle_id=cycle_id
+            )
+        if defaulter_type in ("all", "loan"):
+            loan_rows = ReportRepository._loan_defaulters(chama)
+
+        return {
+            "currency": chama.currency,
+            "contribution_defaulters_count": len(contribution_rows),
+            "loan_defaulters_count": len(loan_rows),
+            "defaulters": contribution_rows + loan_rows,
         }

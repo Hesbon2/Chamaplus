@@ -88,6 +88,36 @@ class MemberStatementController extends RefreshController<MemberStatement> {
   }
 }
 
+class DefaultersReportController extends RefreshController<DefaultersReport> {
+  DefaultersReportController({
+    required ReportRepository repository,
+    required String chamaId,
+  })  : _repository = repository,
+        _chamaId = chamaId;
+
+  final ReportRepository _repository;
+  final String _chamaId;
+  String type = 'all';
+  String? cycleId;
+
+  @override
+  Future<DefaultersReport> fetchData({bool forceRefresh = false}) {
+    return _repository.getDefaultersReport(
+      chamaId: _chamaId,
+      cycleId: cycleId,
+      type: type,
+    );
+  }
+
+  Future<void> setType(String value) async {
+    type = value;
+    await load(forceRefresh: true);
+  }
+
+  @override
+  bool isEmptyData(DefaultersReport data) => false;
+}
+
 class MonthlyTrendController extends RefreshController<List<MonthlyReport>> {
   MonthlyTrendController({
     required ReportRepository repository,

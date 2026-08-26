@@ -43,6 +43,12 @@ abstract class ReportRepository {
     required String memberId,
   });
 
+  Future<DefaultersReport> getDefaultersReport({
+    required String chamaId,
+    String? cycleId,
+    String type = 'all',
+  });
+
   Future<ReportsHomeData> getReportsHome({
     required String chamaId,
   });

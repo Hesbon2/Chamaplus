@@ -1,0 +1,39 @@
+# =============================================================================
+# Root ignores — paper/panel authoring clutter (not application code)
+# Keep: Chamaplus.docx, ChamaPlus_Panel_Presentation*.pptx
+# =============================================================================
+
+# Screenshots & stamp / preview assets used only for the written report
+Screenshots/
+_scn1_preview/
+stamp_*.jpg
+stamp_*.png
+
+# Generated diagrams for the paper (app Docs/*.md stay tracked)
+Docs/diagrams/
+Docs/CHAMAPLUS_PANEL_PRESENTER_SCRIPT.md
+
+# Root Python helpers used to build/edit Word/PPTX documents
+/_*.py
+/__pycache__/
+
+# Extracted / intermediate text dumps from those scripts
+/_*.txt
+
+# Paper & reference docs — allow only Chamaplus.docx
+*.docx
+!Chamaplus.docx
+*.odt
+*.pdf
+chamaplus content.txt
+
+# Do not commit other presentations; allow panel decks only
+*.pptx
+!ChamaPlus_Panel_Presentation.pptx
+!ChamaPlus_Panel_Presentation_12slides.pptx
+
+# Editor / OS noise at repo root
+.DS_Store
+Thumbs.db
+*.swp
+*~

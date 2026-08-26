@@ -2,7 +2,7 @@ import '../../../../shared/api_state.dart';
 import '../../domain/entities/chama.dart';
 import '../../domain/repositories/chama_repository.dart';
 
-/// Paginated active members with search + infinite scroll.
+/// Paginated members with search, status filter, and infinite scroll.
 class MembersController extends PaginationController<Membership> {
   MembersController({
     required ChamaRepository repository,
@@ -16,6 +16,9 @@ class MembersController extends PaginationController<Membership> {
 
   String searchQuery = '';
 
+  /// `null` means all statuses.
+  MembershipStatus? statusFilter;
+
   @override
   Future<PageResult<Membership>> fetchPage({
     required int page,
@@ -24,7 +27,7 @@ class MembersController extends PaginationController<Membership> {
     final result = await _repository.listMembers(
       chamaId: _chamaId,
       search: searchQuery.isEmpty ? null : searchQuery,
-      status: MembershipStatus.active,
+      status: statusFilter,
       page: page,
       pageSize: pageSize,
     );
@@ -37,6 +40,11 @@ class MembersController extends PaginationController<Membership> {
 
   Future<void> search(String query) async {
     searchQuery = query;
+    await load();
+  }
+
+  Future<void> setStatusFilter(MembershipStatus? status) async {
+    statusFilter = status;
     await load();
   }
 }

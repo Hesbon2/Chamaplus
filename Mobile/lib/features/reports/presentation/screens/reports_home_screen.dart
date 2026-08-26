@@ -187,6 +187,14 @@ class ReportsHomeScreen extends ConsumerWidget {
               ),
               const SizedBox(height: AppSpacing.sm),
               ReportCard(
+                title: 'Defaulters report',
+                subtitle: 'Missed contributions & overdue loans',
+                icon: Icons.warning_amber_outlined,
+                onTap: () =>
+                    context.push(RoutePaths.defaultersReport(chamaId)),
+              ),
+              const SizedBox(height: AppSpacing.sm),
+              ReportCard(
                 title: 'Member statement',
                 subtitle: 'Personal contributions, loans & credit',
                 icon: Icons.receipt_long_outlined,

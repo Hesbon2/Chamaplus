@@ -82,6 +82,63 @@ class TestMemberList:
         assert response.data["success"] is True
         assert response.data["data"]["count"] >= 1
         assert len(response.data["data"]["results"]) >= 1
+        member = response.data["data"]["results"][0]
+        assert "contributions_total" in member
+        assert "contributions_count" in member
+        assert "active_loans_count" in member
+        assert "outstanding_loans_balance" in member
+
+    def test_list_members_includes_stats_after_contribution(
+        self, auth_client, treasurer_client, chama, member_user, roles
+    ):
+        from apps.chamas.models import Chama
+        from apps.contributions.tests.test_contribution_cycles import (
+            CYCLE_PAYLOAD,
+            cycles_url,
+        )
+        from apps.contributions.tests.test_contributions import contributions_url
+        from apps.memberships.constants import ACTIVE
+        from apps.memberships.models import Membership
+        from apps.roles.constants import MEMBER
+
+        chama_obj = Chama.objects.get(pk=chama["id"])
+        membership, _ = Membership.objects.get_or_create(
+            user=member_user,
+            chama=chama_obj,
+            defaults={
+                "role": Role.objects.get(slug=MEMBER),
+                "status": ACTIVE,
+            },
+        )
+        if membership.status != ACTIVE:
+            membership.activate()
+
+        cycle = treasurer_client.post(
+            cycles_url(chama["id"]), CYCLE_PAYLOAD, format="json"
+        ).data["data"]
+        treasurer_client.post(
+            contributions_url(chama["id"]),
+            {
+                "cycle_id": cycle["id"],
+                "member_id": str(member_user.id),
+                "amount": "5000.00",
+                "payment_method": "cash",
+                "reference": "MEM-STAT-001",
+            },
+            format="json",
+        )
+
+        response = auth_client.get(
+            f"{CHAMAS_URL}{chama['id']}/members/?status=active"
+        )
+        assert response.status_code == 200
+        row = next(
+            r
+            for r in response.data["data"]["results"]
+            if r["user"]["id"] == str(member_user.id)
+        )
+        assert row["contributions_total"] == "5000.00"
+        assert row["contributions_count"] == 1
 
 
 @pytest.mark.django_db

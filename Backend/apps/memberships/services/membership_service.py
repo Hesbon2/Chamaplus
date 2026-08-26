@@ -1,10 +1,16 @@
+from decimal import Decimal
+
 from django.contrib.auth import get_user_model
 from django.db import transaction
-from django.db.models import Q
+from django.db.models import Count, DecimalField, OuterRef, Q, Subquery, Sum, Value
+from django.db.models.functions import Coalesce
 from django.utils import timezone
 
 from apps.chamas.models import Chama
+from apps.contributions.models import Contribution
 from apps.core.exceptions import DomainError
+from apps.loans.constants import DISBURSED
+from apps.loans.models import LoanApplication
 from apps.memberships.constants import ACTIVE, LEFT, PENDING, SUSPENDED
 from apps.memberships.models import Membership
 from apps.roles.constants import MEMBER
@@ -164,8 +170,67 @@ class MembershipService:
 
     @staticmethod
     def list_members(chama, search=None, status=None, ordering="-created_at"):
-        queryset = Membership.objects.filter(chama=chama).select_related(
-            "user", "role"
+        contrib_total_sq = (
+            Contribution.objects.filter(
+                member_id=OuterRef("user_id"),
+                cycle__chama_id=chama.id,
+            )
+            .values("member_id")
+            .annotate(total=Sum("amount"))
+            .values("total")[:1]
+        )
+        contrib_count_sq = (
+            Contribution.objects.filter(
+                member_id=OuterRef("user_id"),
+                cycle__chama_id=chama.id,
+            )
+            .values("member_id")
+            .annotate(cnt=Count("id"))
+            .values("cnt")[:1]
+        )
+        active_loans_sq = (
+            LoanApplication.objects.filter(
+                applicant_id=OuterRef("user_id"),
+                chama_id=chama.id,
+                status=DISBURSED,
+            )
+            .values("applicant_id")
+            .annotate(cnt=Count("id"))
+            .values("cnt")[:1]
+        )
+        outstanding_sq = (
+            LoanApplication.objects.filter(
+                applicant_id=OuterRef("user_id"),
+                chama_id=chama.id,
+                status=DISBURSED,
+            )
+            .values("applicant_id")
+            .annotate(total=Sum("outstanding_balance"))
+            .values("total")[:1]
+        )
+
+        decimal_field = DecimalField(max_digits=14, decimal_places=2)
+        queryset = (
+            Membership.objects.filter(chama=chama)
+            .select_related("user", "role")
+            .annotate(
+                contributions_total=Coalesce(
+                    Subquery(contrib_total_sq, output_field=decimal_field),
+                    Value(Decimal("0.00"), output_field=decimal_field),
+                ),
+                contributions_count=Coalesce(
+                    Subquery(contrib_count_sq),
+                    Value(0),
+                ),
+                active_loans_count=Coalesce(
+                    Subquery(active_loans_sq),
+                    Value(0),
+                ),
+                outstanding_loans_balance=Coalesce(
+                    Subquery(outstanding_sq, output_field=decimal_field),
+                    Value(Decimal("0.00"), output_field=decimal_field),
+                ),
+            )
         )
 
         if status:

@@ -181,6 +181,10 @@ class Membership {
     this.createdAt,
     this.chamaId,
     this.chamaName,
+    this.contributionsTotal = '0.00',
+    this.contributionsCount = 0,
+    this.activeLoansCount = 0,
+    this.outstandingLoansBalance = '0.00',
   });
 
   final String id;
@@ -193,6 +197,12 @@ class Membership {
   /// Present on pending-invitation payloads (`GET /memberships/pending/`).
   final String? chamaId;
   final String? chamaName;
+
+  /// Annotated financial stats from the members list API.
+  final String contributionsTotal;
+  final int contributionsCount;
+  final int activeLoansCount;
+  final String outstandingLoansBalance;
 }
 
 /// Upcoming meeting summary for a Chama.

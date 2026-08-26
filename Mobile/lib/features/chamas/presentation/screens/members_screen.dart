@@ -13,7 +13,7 @@ import '../../domain/entities/chama.dart';
 import '../providers/chama_providers.dart';
 import '../utils/chama_ui_mapper.dart';
 
-/// Paginated active members for a Chama.
+/// Paginated members for a Chama with status filter and financial details.
 class MembersScreen extends ConsumerStatefulWidget {
   const MembersScreen({super.key, required this.chamaId});
 
@@ -28,6 +28,14 @@ class _MembersScreenState extends ConsumerState<MembersScreen> {
   final _scrollController = ScrollController();
   Timer? _debounce;
   late final InfiniteScrollListener _infiniteScroll;
+
+  static const _filters = <(MembershipStatus?, String)>[
+    (null, 'All'),
+    (MembershipStatus.active, 'Active'),
+    (MembershipStatus.pending, 'Pending'),
+    (MembershipStatus.suspended, 'Suspended'),
+    (MembershipStatus.left, 'Left'),
+  ];
 
   @override
   void initState() {
@@ -63,6 +71,12 @@ class _MembersScreenState extends ConsumerState<MembersScreen> {
     final state = ref.watch(membersControllerProvider(widget.chamaId));
     final controller =
         ref.read(membersControllerProvider(widget.chamaId).notifier);
+    final filterLabel = _filters
+        .firstWhere(
+          (f) => f.$1 == controller.statusFilter,
+          orElse: () => (null, 'All'),
+        )
+        .$2;
 
     return Scaffold(
       appBar: AppBar(title: const Text('Members')),
@@ -78,9 +92,35 @@ class _MembersScreenState extends ConsumerState<MembersScreen> {
           ),
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md),
+            child: SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              child: Row(
+                children: [
+                  for (final option in _filters)
+                    Padding(
+                      padding: const EdgeInsets.only(right: AppSpacing.sm),
+                      child: FilterChip(
+                        label: Text(option.$2),
+                        selected: controller.statusFilter == option.$1,
+                        onSelected: (_) =>
+                            controller.setStatusFilter(option.$1),
+                      ),
+                    ),
+                ],
+              ),
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.fromLTRB(
+              AppSpacing.md,
+              AppSpacing.sm,
+              AppSpacing.md,
+              0,
+            ),
             child: SectionHeader(
-              title: 'Active members',
-              subtitle: '${controller.totalCount ?? state.data?.length ?? 0} total',
+              title: '$filterLabel members',
+              subtitle:
+                  '${controller.totalCount ?? state.data?.length ?? 0} total',
             ),
           ),
           Expanded(
@@ -89,10 +129,10 @@ class _MembersScreenState extends ConsumerState<MembersScreen> {
               onRefresh: controller.refresh,
               onRetry: controller.retry,
               emptyTitle: 'No members found',
-              emptyMessage: 'Active members will appear here.',
+              emptyMessage: 'Members matching this filter will appear here.',
               emptyIcon: Icons.people_outline,
               shimmerItemCount: 6,
-              shimmerItemHeight: 72,
+              shimmerItemHeight: 88,
               builder: (context, members) {
                 return ListView.separated(
                   controller: _scrollController,
@@ -118,6 +158,7 @@ class _MembersScreenState extends ConsumerState<MembersScreen> {
                         ),
                       ),
                       child: Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           AvatarBadge(initials: member.user.initials),
                           const SizedBox(width: AppSpacing.md),
@@ -134,6 +175,13 @@ class _MembersScreenState extends ConsumerState<MembersScreen> {
                                   member.user.phoneNumber,
                                   style:
                                       Theme.of(context).textTheme.bodyMedium,
+                                ),
+                                const SizedBox(height: AppSpacing.xxs),
+                                Text(
+                                  'Contributed KES ${member.contributionsTotal}'
+                                  ' · ${member.activeLoansCount} active loan(s)',
+                                  style:
+                                      Theme.of(context).textTheme.bodySmall,
                                 ),
                               ],
                             ),
