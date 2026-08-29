@@ -1,3 +1,4 @@
+import '../../../../core/utils/date_time_parser.dart';
 import '../../domain/entities/user.dart';
 
 /// User profile payload from `/users/me/`.
@@ -30,10 +31,8 @@ class UserDto {
       firstName: json['first_name'] as String?,
       lastName: json['last_name'] as String?,
       isStaff: json['is_staff'] as bool? ?? false,
-      dateJoined: DateTime.parse(json['date_joined'] as String),
-      lastLogin: json['last_login'] != null
-          ? DateTime.parse(json['last_login'] as String)
-          : null,
+      dateJoined: parseApiDateTime(json['date_joined']) ?? DateTime.now(),
+      lastLogin: parseApiDateTime(json['last_login']),
     );
   }
 

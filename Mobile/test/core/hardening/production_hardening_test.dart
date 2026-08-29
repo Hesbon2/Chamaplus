@@ -47,6 +47,29 @@ void main() {
       );
       expect(result.message.toLowerCase(), contains('session'));
     });
+
+    test('surfaces envelope field validation errors', () {
+      final result = handler.handle(
+        DioException(
+          requestOptions: RequestOptions(path: '/auth/register/'),
+          type: DioExceptionType.badResponse,
+          response: Response(
+            requestOptions: RequestOptions(path: '/auth/register/'),
+            statusCode: 400,
+            data: {
+              'success': false,
+              'message': 'Validation failed',
+              'data': {
+                'phone_number': [
+                  'A user with this phone number already exists.',
+                ],
+              },
+            },
+          ),
+        ),
+      );
+      expect(result.message, 'A user with this phone number already exists.');
+    });
   });
 
   group('SafeClipboard', () {

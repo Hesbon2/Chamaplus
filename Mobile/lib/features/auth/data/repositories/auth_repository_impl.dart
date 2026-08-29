@@ -27,7 +27,7 @@ class AuthRepositoryImpl implements AuthRepository {
     String? lastName,
     String? email,
   }) async {
-    await _authApi.register(
+    final userDto = await _authApi.register(
       RegisterRequestDto(
         phoneNumber: phoneNumber,
         password: password,
@@ -38,8 +38,13 @@ class AuthRepositoryImpl implements AuthRepository {
       ),
     );
 
-    // Register returns the user profile without tokens — log in immediately.
-    return login(phoneNumber: phoneNumber, password: password);
+    // Register returns profile only — exchange credentials for JWTs, then reuse
+    // the register payload (avoids a second profile parse right after signup).
+    final tokens = await _authApi.login(
+      LoginRequestDto(phoneNumber: phoneNumber, password: password),
+    );
+    await _persistTokens(tokens.access, tokens.refresh);
+    return userDto.toEntity();
   }
 
   @override

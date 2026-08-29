@@ -36,6 +36,7 @@ class RegisterController extends StateNotifier<RegisterState> {
   RegisterController(this._repository) : super(const RegisterState());
 
   final AuthRepository _repository;
+  bool _inFlight = false;
 
   Future<User?> register({
     required String phoneNumber,
@@ -45,6 +46,9 @@ class RegisterController extends StateNotifier<RegisterState> {
     String? lastName,
     String? email,
   }) async {
+    if (_inFlight) return null;
+
+    _inFlight = true;
     state = state.copyWith(isLoading: true, clearError: true);
 
     try {
@@ -67,6 +71,8 @@ class RegisterController extends StateNotifier<RegisterState> {
         errorMessage: 'Registration failed. Please try again.',
       );
       return null;
+    } finally {
+      _inFlight = false;
     }
   }
 

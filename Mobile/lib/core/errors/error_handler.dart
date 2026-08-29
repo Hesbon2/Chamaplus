@@ -69,6 +69,13 @@ class ErrorHandler {
           (map['non_field_errors'] as List).isNotEmpty) {
         message = (map['non_field_errors'] as List).first.toString();
       }
+
+      final fieldErrors = map['data'];
+      if (message == 'Validation failed' &&
+          fieldErrors is Map &&
+          fieldErrors.isNotEmpty) {
+        message = _firstFieldError(fieldErrors);
+      }
     }
 
     if (statusCode == 401) {
@@ -93,5 +100,17 @@ class ErrorHandler {
       statusCode: statusCode,
       cause: error,
     );
+  }
+
+  static String _firstFieldError(Map<dynamic, dynamic> errors) {
+    for (final value in errors.values) {
+      if (value is List && value.isNotEmpty) {
+        return value.first.toString();
+      }
+      if (value is String && value.trim().isNotEmpty) {
+        return value.trim();
+      }
+    }
+    return 'Validation failed';
   }
 }
